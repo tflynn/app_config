@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+mvn package >/dev/null
+java -cp ./target/app_config-1.0-SNAPSHOT-jar-with-dependencies.jar  com.verymuchme.appconfig.Sample
