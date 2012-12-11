@@ -42,6 +42,18 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+              <groupId>org.apache.maven.plugins</groupId>
+              <artifactId>maven-javadoc-plugin</artifactId>
+              <version>2.7</version>
+              <configuration>
+                <show>protected</show>
+                <nohelp>true</nohelp>
+                <reportOutputDirectory>${basedir}</reportOutputDirectory>
+                <destDir>docs</destDir>
+              </configuration>
+            </plugin>
+            
         </plugins>
     </build>
 
@@ -81,5 +93,17 @@
             <version>2.5.1</version>
         </dependency>
 
+        <dependency>
+          <groupId>commons-configuration</groupId>
+          <artifactId>commons-configuration</artifactId>
+          <version>1.9</version>
+        </dependency>
+        
+        <dependency>
+            <groupId>commons-beanutils</groupId>
+            <artifactId>commons-beanutils</artifactId>
+            <version>1.8.3</version>
+        </dependency>
+        
     </dependencies>
 </project>

@@ -9,3 +9,5 @@ projectFilesBackup*
 projectFilesBackup*/*
 Sample.java
 SampleTest.java
+src/main/resources/rebel.xml
+.settings/*
