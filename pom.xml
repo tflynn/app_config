@@ -12,8 +12,22 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <internal.repo.path>file:///Users/tracy/Everything/Activities/mvn-repo-public</internal.repo.path>
     </properties>
 
+  <distributionManagement>
+    <repository>
+      <id>Release Repo</id>
+      <name>Internal Release Repository</name>
+      <url>${internal.repo.path}/releases</url>
+    </repository>
+    <snapshotRepository>
+      <id>Snapshot Repo</id>
+      <name>Internal Snapshot Repository</name>
+      <url>${internal.repo.path}/snapshots</url>
+    </snapshotRepository>
+  </distributionManagement>
+    
     <build>
         <plugins>
             <plugin>
@@ -53,7 +67,6 @@
                 <destDir>docs</destDir>
               </configuration>
             </plugin>
-            
         </plugins>
     </build>
 

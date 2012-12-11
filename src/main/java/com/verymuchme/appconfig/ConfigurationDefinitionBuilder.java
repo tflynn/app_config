@@ -216,7 +216,7 @@ public class ConfigurationDefinitionBuilder {
   /**
    * Set the external configuration directory
    * 
-   * @param External configuration directory or null if not set
+   * @param externalConfDir External configuration directory or null if not set
    */
   public void setExternalConfigurationDirectory(String externalConfDir) {
     this.externalConfigurationDirectory = externalConfDir;

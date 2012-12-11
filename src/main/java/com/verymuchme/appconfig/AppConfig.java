@@ -29,8 +29,11 @@ import org.slf4j.LoggerFactory;
 /**
  * <p>Application configuration the easy way - a thin wrapper for Apache Commons Configuration</p>
  *
+ * <p>Typical usage</p>
+ * <pre>AppConfig.sConfigure();</pre>
+ * 
  * <p>Automatically names, finds and loads environment-specific and default application, logging (log4j) and database configuration files. If an external directory is specified, that directory is searched for environment-specific files only.
- * Then the user directory, current and system classpaths are searched in that order. Missing default configuration files for application and logging configurations will cause an exception if not present. This behavior can be changed with appropriate option settings.</p>
+ * Then the user directory, current and system classpaths are searched in that order. Missing default configuration files for application and logging configurations will cause an exception if not present.  The default database configuration file is by default disabled. This behavior can be changed with appropriate option settings.</p>
  * 
  * <p> THe file name convention is [application|database|log4j]-[development|test|production|defaults].properties.</p>
  * 
