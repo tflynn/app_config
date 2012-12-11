@@ -35,9 +35,10 @@ import org.slf4j.LoggerFactory;
  * <p>Automatically names, finds and loads environment-specific and default application, logging (log4j) and database configuration files. If an external directory is specified, that directory is searched for environment-specific files only.
  * Then the user directory, current and system classpaths are searched in that order. Missing default configuration files for application and logging configurations will cause an exception if not present.  The default database configuration file is by default disabled. This behavior can be changed with appropriate option settings.</p>
  * 
+ * <p>The order of loading of the files follows the Apache Commons Configuration convention. The environment-specific files are loaded first, followed by the defaults. That ensures that the environment-specific settings override the defaults.</p>
  * <p> THe file name convention is [application|database|log4j]-[development|test|production|defaults].properties.</p>
  * 
- * <p>Settings available from the internal options configuration,  Java/JVM command-line and the environment. The values are taken starting with internal options,  command-line and then the environment value.</p>
+ * <p>The following internal settings are taken starting with internal options, command-line and then the environment value.</p>
  * 
  * <ul>
  * <li>'com.verymuchme.appconfig.consoleLog' - Enable/disable bootstrap console logging</li>

@@ -1,11 +1,11 @@
 
-AppCOnfig - Application configuration the easy way - a thin wrapper for Apache Commons Configuration
+AppConfig - Application configuration the easy way - a thin wrapper for Apache Commons Configuration
 
 Typical usage
 
 AppConfig.sConfigure();
 
-Automatically names, finds and loads environment-specific and default application, logging (log4j) and database configuration files. If an external directory is specified, that directory is searched for environment-specific files only. Then the user directory, current and system classpaths are searched in that order. Missing default configuration files for application and logging configurations will cause an exception if not present. The default database configuration file is by default disabled. This behavior can be changed with appropriate option settings.
+Automatically names, finds and loads environment-specific and default application, logging (log4j) and database configuration files. If an external directory is specified, that directory is searched for environment-specific files only. Then the user directory, current and system classpaths are searched in that order. Missing default configuration files for application and logging configurations will cause an exception if not present. The default database configuration file is by default disabled. These behaviors can be changed with appropriate option settings.
 
 THe file name convention is [application|database|log4j]-[development|test|production|defaults].properties.
 
