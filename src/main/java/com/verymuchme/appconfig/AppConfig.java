@@ -19,6 +19,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.StringReader;
 import java.util.HashMap;
+import java.util.List;
 
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.DefaultConfigurationBuilder;
@@ -104,8 +105,15 @@ public class AppConfig {
     this.bootstrapLogger = new BootstrapLogger();
 
     // Get the configuration definition
-    String configurationDefinition = this.buildConfigurationDefinition();
-     
+    ConfigurationDefinitionBuilder configurationBuilder = new ConfigurationDefinitionBuilder(this.configurationOptions);
+    configurationBuilder.setBootstrapLogger(this.bootstrapLogger);
+    String configurationDefinition = configurationBuilder.build();
+    
+    // Configure log4j first - deals with logging configuration in dependent packages
+    List<String> log4jConfigNames = configurationBuilder.generateLog4jConfigurationNames();
+    configurationBuilder.loadLog4jConfiguration(log4jConfigNames);
+
+    
     File tempFile = null;
     
     try {
@@ -139,20 +147,8 @@ public class AppConfig {
         // Ignore
       }
     }
+    
   }
-  
-  /**
-   * Build the Apache Commons Configuration-compliant definition
-   * 
-   * @return XML string with configuration definition
-   */
-  public String buildConfigurationDefinition() {
-    ConfigurationDefinitionBuilder configurationBuilder = new ConfigurationDefinitionBuilder(this.configurationOptions);
-    configurationBuilder.setBootstrapLogger(this.bootstrapLogger);
-    String configurationDefinition = configurationBuilder.build();
-    return configurationDefinition;
-  }
-  
   
   /**
    * Configure the singleton AppConfig instance

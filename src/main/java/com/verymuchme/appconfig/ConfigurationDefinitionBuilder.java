@@ -14,11 +14,15 @@
  */
 package com.verymuchme.appconfig;
 
+import java.io.File;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+
+import org.apache.log4j.PropertyConfigurator;
 
 /**
  * Dynamically build a configuration definition compatible with Apache Commons Configuration
@@ -230,28 +234,23 @@ public class ConfigurationDefinitionBuilder {
     String suffix = this.getConfigValue(CONFIGURATION_NAME_SUFFIX_PROPERTY_NAME, DEFAULT_CONFIGURATION_NAME_SUFFIX);
     String applicationPrefix = this.getConfigValue(APPLICATION_CONFIGURATION_NAME_PREFIX_PROPERTY_NAME, DEFAULT_APPLICATION_CONFIGURATION_NAME_PREFIX);
     String databasePrefix = this.getConfigValue(DATABASE_CONFIGURATION_NAME_PREFIX_PROPERTY_NAME, DEFAULT_DATABASE_CONFIGURATION_NAME_PREFIX);
-    String log4jPrefix = this.getConfigValue(LOG4J_CONFIGURATION_NAME_PREFIX_PROPERTY_NAME, DEFAULT_LOG4J_CONFIGURATION_NAME_PREFIX);
     String rtEnv = this.getRunTimeEnvironment();
     String defaultPropName = this.getConfigValue(DEFAULT_CONFIGURATION_NAME_PROPERTY_NAME,DEFAULT_CONFIGURATION_NAME);
     if (this.externalConfigurationDirectory != null ) {
       String confDir = this.externalConfigurationDirectory;
       String extApplicationDef = String.format("<properties fileName=\"%s/%s-%s.%s\" config-optional=\"true\"/>",confDir,applicationPrefix,rtEnv,suffix);
       String extDatabaseDef = String.format("<properties fileName=\"%s/%s-%s.%s\" config-optional=\"true\"/>",confDir,databasePrefix,rtEnv,suffix);
-      String extLog4jDef = String.format("<properties fileName=\"%s/%s-%s.%s\" config-optional=\"true\"/>",confDir,log4jPrefix,rtEnv,suffix);
       definitions.add(extApplicationDef);
       definitions.add(extDatabaseDef);
-      definitions.add(extLog4jDef);
     }
     String applicationDef = String.format("<properties fileName=\"%s-%s.%s\" config-optional=\"true\"/>",applicationPrefix,rtEnv,suffix);
     String databaseDef = String.format("<properties fileName=\"%s-%s.%s\" config-optional=\"true\"/>", databasePrefix,rtEnv,suffix);
-    String log4jDef = String.format("<properties fileName=\"%s-%s.%s\" config-optional=\"true\"/>",log4jPrefix,rtEnv,suffix);
     definitions.add(applicationDef);
     definitions.add(databaseDef);
-    definitions.add(log4jDef);
     
     String applicationDefault = String.format("<properties fileName=\"%s-%s.%s\"/>",applicationPrefix,defaultPropName,suffix);
     String databaseDefault = String.format("<properties fileName=\"%s-%s.%s\"/>",databasePrefix,defaultPropName,suffix);
-    String log4jDefault = String.format("<properties fileName=\"%s-%s.%s\"/>",log4jPrefix,defaultPropName,suffix);
+    //String log4jDefault = String.format("<properties fileName=\"%s-%s.%s\"/>",log4jPrefix,defaultPropName,suffix);
     definitions.add(applicationDefault);
     
     String includeDatabaseDefault = this.getConfigValue(DEFAULT_DATABASE_CONFIGURATION_ENABLED_PROPERTY_NAME, DEFAULT_DATABASE_CONFIGURATION_ENABLED);
@@ -259,19 +258,97 @@ public class ConfigurationDefinitionBuilder {
       definitions.add(databaseDefault);
     }
 
-    String includeLog4jDefault = this.getConfigValue(DEFAULT_LOG4J_CONFIGURATION_ENABLED_PROPERTY_NAME, DEFAULT_LOG4J_CONFIGURATION_ENABLED);
-    if (includeLog4jDefault != null && includeLog4jDefault.equalsIgnoreCase("true")) {
-      definitions.add(log4jDefault);
-    }
-    
-    this.bootstrapLogger.debug(String.format("\n\nAppConfig.configure configurationDefinitions\n"));
+    this.bootstrapLogger.debug(String.format("AppConfig.configure configurationDefinitions"));
     for (String definition : definitions) {
       this.bootstrapLogger.debug(String.format("%s",definition));
     }
-    this.bootstrapLogger.debug(String.format("\n\n"));
+
     return definitions;
   }
   
+  /**
+   * Generate log4j configuration file names - ordered so first one on the list that exists should be loaded
+   * 
+   * @return List of log4j configuration file names
+   */
+  public List<String> generateLog4jConfigurationNames() {
+    List<String> configNames = new ArrayList<String>();
+    String suffix = this.getConfigValue(CONFIGURATION_NAME_SUFFIX_PROPERTY_NAME, DEFAULT_CONFIGURATION_NAME_SUFFIX);
+    String log4jPrefix = this.getConfigValue(LOG4J_CONFIGURATION_NAME_PREFIX_PROPERTY_NAME, DEFAULT_LOG4J_CONFIGURATION_NAME_PREFIX);
+    String rtEnv = this.getRunTimeEnvironment();
+    String defaultPropName = this.getConfigValue(DEFAULT_CONFIGURATION_NAME_PROPERTY_NAME,DEFAULT_CONFIGURATION_NAME);
+    if (this.externalConfigurationDirectory != null ) {
+      String confDir = this.externalConfigurationDirectory;
+      String extLog4jDef = String.format("%s/%s-%s.%s",confDir,log4jPrefix,rtEnv,suffix);
+      configNames.add(extLog4jDef);
+    }
+    String log4jDef = String.format("%s-%s.%s",log4jPrefix,rtEnv,suffix);
+    configNames.add(log4jDef);
+
+    String includeLog4jDefault = this.getConfigValue(DEFAULT_LOG4J_CONFIGURATION_ENABLED_PROPERTY_NAME, DEFAULT_LOG4J_CONFIGURATION_ENABLED);
+    if (includeLog4jDefault != null && includeLog4jDefault.equalsIgnoreCase("true")) {
+      String log4jDefault = String.format("%s-%s.%s",log4jPrefix,defaultPropName,suffix);
+      configNames.add(log4jDefault);
+    }
+    
+    for (String confName : configNames) {
+      this.bootstrapLogger.debug(String.format("AppConfig.generateLog4jConfigurationNames %s",confName));
+    }
+    
+    return configNames;
+  }
+
+  /**
+   * Load log4j configuration - first file in the list that exists is loaded
+   * 
+   * @param configNames List of possible config file names
+   * @return true if configuration found and loaded, false otherwise
+   */
+  public boolean loadLog4jConfiguration(List<String> configNames) throws Exception {
+
+    boolean configFileFound = false;
+    String configFileLoaded = null;
+    String loadingMethod = null;
+    
+    for (String configName : configNames) {
+      File configFile = new File(configName);
+      if (configFile.isAbsolute() && configFile.exists()) {
+        PropertyConfigurator.configure(configName);
+        configFileFound = true;
+        configFileLoaded = configName;
+        loadingMethod = "absolute";
+        break;
+      }
+      ClassLoader loader = Thread.currentThread().getContextClassLoader();
+      URL url = loader.getResource(configName);
+      if (url != null) {
+        PropertyConfigurator.configure(url);
+        configFileFound = true;
+        configFileLoaded = configName;
+        loadingMethod = "classpath";
+        break;
+      }
+      URL systemUrl = ClassLoader.getSystemResource(configName);
+      if (systemUrl != null) {
+        PropertyConfigurator.configure(url);
+        configFileFound = true;
+        configFileLoaded = configName;
+        loadingMethod = "system classpath";
+        break;
+      }
+    }
+    
+    if (configFileFound) {
+      this.bootstrapLogger.debug(String.format("AppConfig.loadLog4jConfiguration loaded configuration %s using %s",configFileLoaded, loadingMethod));
+    }
+    else {
+      this.bootstrapLogger.debug(String.format("AppConfig.loadLog4jConfiguration failed to load any configuration"));
+    }
+
+    return configFileFound;
+  }
+  
+
   /**
    * Set configuration options
    * 
