@@ -34,3 +34,21 @@ The following internal settings are taken starting with internal options, comman
 * 'com.verymuchme.appconfig.defaultConfigurationName' - If specified, defines the prefix for default configuration property files. Defaults to 'defaults'
 * 'com.verymuchme.appconfig.database.defaultConfigurationEnabled' - If set to true, a default database configuration file ('database-defaults.properties') must be present. Defaults to 'false'
 * 'com.verymuchme.appconfig.log4j.defaultConfigurationEnabled' - If set to true, a default log4j configuration file ('log4j-defaults.properties') must be present. Defaults to 'true'
+
+Maven dependency information
+
+    <repository>
+      <id>mvn-repo-releases</id>
+      <url>https://github.com/tflynn/mvn-repo-public/raw/master/releases</url>
+    </repository>
+         
+    <repository>
+      <id>mvn-repo-snapshots</id>
+      <url>https://github.com/tflynn/mvn-repo-public/raw/master/snapshots</url>
+    </repository>
+
+    <dependency>
+      <groupId>com.verymuchme.appconfig</groupId>
+      <artifactId>app_config</artifactId>
+      <version>1.0-SNAPSHOT</version>
+    </dependency>
