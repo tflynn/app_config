@@ -23,6 +23,9 @@ package com.verymuchme.appconfig;
  * <li>'com.verymuchme.appconfig.consoleLog' - Enable/disable bootstrap console logging</li>
  * </ul> 
  * 
+ * @author Tracy Flynn
+ * @version 1.0
+ * @since 1.0
  */
 public class BootstrapLogger {
   

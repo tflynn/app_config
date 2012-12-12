@@ -27,24 +27,11 @@ import org.apache.log4j.PropertyConfigurator;
 /**
  * Dynamically build a configuration definition compatible with Apache Commons Configuration
  *
- * Settings available from the internal options configuration,  Java/JVM command-line and the environment. The values are taken starting with internal options,  command-line and then the environment value.
+ * See the documentation in AppConfig for details.
  * 
- * <ul>
- * <li>'com.verymuchme.appconfig.systemPropertiesOverride' - enable/disable the ability for system properties to override others</li>
- * <li>'com.verymuchme.appconfig.runTimeEnvironment' - If specified, one of 'development','production','test'. Defaults to 'development'</li>
- * <li>'com.verymuchme.appconfig.externalConfigurationDirectory' - If specified, defines the external directory location for configuration files specific to particular run-time environments</li>
- * <li>'com.verymuchme.appconfig.applicationConfigurationPrefix' - If specified, defines the prefix for application configuration property files. Defaults to 'application'</li>
- * <li>'com.verymuchme.appconfig.databaseConfigurationPrefix' - If specified, defines the prefix for database configuration property files. Defaults to 'database'</li>
- * <li>'com.verymuchme.appconfig.log4jConfigurationPrefix' - If specified, defines the prefix for log4j configuration property files. Defaults to 'log4j'</li>
- * <li>'com.verymuchme.appconfig.configurationNameSuffix' - If specified, defines the suffix for configuration property files. Defaults to 'properties'</li>
- * <li>'com.verymuchme.appconfig.defaultConfigurationName' - If specified, defines the prefix for default configuration property files. Defaults to 'defaults'</li>
- * <li>'com.verymuchme.appconfig.database.defaultConfigurationEnabled' - If set to true, a default database configuration file ('database-defaults.properties') must be present. Defaults to 'false'</li>
- * <li>'com.verymuchme.appconfig.log4j.defaultConfigurationEnabled' - If set to true, a default log4j configuration file ('log4j-defaults.properties') must be present. Defaults to 'true'</li>
- * </ul> 
- *
  * @author Tracy Flynn
- * @version 1.0-SNAPSHOT
- * @since 1.0-SNAPSHOT
+ * @version 1.0
+ * @since 1.0
  */
 public class ConfigurationDefinitionBuilder {
 
