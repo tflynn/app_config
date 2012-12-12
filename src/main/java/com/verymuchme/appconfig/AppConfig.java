@@ -207,6 +207,13 @@ public class AppConfig {
   /**
    * Create a new AppConfig instance
    */
+  public AppConfig() {
+    this(null);
+  }
+  
+  /**
+   * Create a new AppConfig instance
+   */
   public AppConfig(HashMap<String,String> configOptions) {
     this.configurationOptions = configOptions;
   }
