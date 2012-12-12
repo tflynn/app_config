@@ -202,7 +202,13 @@ public class AppConfig {
    * Configuration options
    */
   private HashMap<String,String> configurationOptions = null;
-  
+
+  /**
+   * Create a new AppConfig instance
+   */
+  public AppConfig() {
+    this(null);
+  }
   
   /**
    * Create a new AppConfig instance
