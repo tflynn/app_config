@@ -212,6 +212,8 @@ public class AppConfig {
   
   /**
    * Create a new AppConfig instance
+   * 
+   * @param configOptions hash of configuration options
    */
   public AppConfig(HashMap<String,String> configOptions) {
     this.configurationOptions = configOptions;
