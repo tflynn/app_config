@@ -23,6 +23,7 @@ import java.util.List;
 
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.DefaultConfigurationBuilder;
+import org.apache.commons.configuration.CombinedConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,6 +38,8 @@ import org.slf4j.LoggerFactory;
 *<h2>Introduction</h2>
 *
 *<p>AppConfig is designed to provide painless multi-environment, external and internal configuration with default settings for components and programs.</p>
+*
+*<p>It is based on Apache Commons Configuration http://commons.apache.org/configuration .</p>
 *
 *<h2>Typical usage</h2>
 *
@@ -57,6 +60,18 @@ import org.slf4j.LoggerFactory;
 *<pre><code>  java . . . -Dcom.verymuchme.appconfig.externalConfigurationDirectory=~/local_appconfig . . .
 *</code></pre>
 *
+*<h3>(Production only) Tell AppConfig to load production configurations</h3>
+*
+*<p>Either</p>
+*
+*<pre><code>  export com.verymuchme.appconfig.runTimeEnvironment=production
+*</code></pre>
+*
+*<p>or</p>
+*
+*<pre><code>  java . . . -Dcom.verymuchme.appconfig.externalConfigurationDirectory=~/local_appconfig -Dcom.verymuchme.appconfig.runTimeEnvironment=production  . . .
+*</code></pre>
+*
 *<h3>Define the database settings (if needed)</h3>
 *
 *<p>If the component or program requires database information, create a suitable &#39;database-[environment].properties&#39; file in the configuration directory. (See below).</p>
@@ -64,6 +79,16 @@ import org.slf4j.LoggerFactory;
 *<h3>Initialize AppConfig in your code</h3>
 *
 *<pre><code>AppConfig.sConfigure();
+*</code></pre>
+*
+*<h3>And access the configuration settings</h3>
+*
+*<pre><code>. . .
+*CombinedConfiguration combinedConfiguration  = AppConfig.sGetCombinedConfiguration();
+*. . .
+*// See Apache Commons Configuration API docs for more information http://commons.apache.org/configuration/apidocs/index.html
+*String configurationValue = combinedConfiguration.getString(&quot;some property name&quot;); 
+*...
 *</code></pre>
 *
 *<h3>Results</h3>
@@ -186,8 +211,6 @@ import org.slf4j.LoggerFactory;
  */
 public class AppConfig {
   
-  //TODO logging for AppConfig initialization separate from APP being configured
-
   /*
    * Singleton AppConfig instance for invocation via singleton shortcuts
    */
@@ -203,6 +226,12 @@ public class AppConfig {
    */
   private HashMap<String,String> configurationOptions = null;
 
+  /*
+   * Private copy of Configuration object returned from DefaultConfigurationBuilder
+   */
+  private CombinedConfiguration combinedConfiguration = null;
+  
+  
   /**
    * Create a new AppConfig instance
    */
@@ -254,7 +283,7 @@ public class AppConfig {
       DefaultConfigurationBuilder defaultConfigurationBuilder = new DefaultConfigurationBuilder();
       defaultConfigurationBuilder.load(tempFile);
       this.bootstrapLogger.debug(String.format("AppConfig.configure configuration definition loaded"));
-      defaultConfigurationBuilder.getConfiguration();
+      this.combinedConfiguration = defaultConfigurationBuilder.getConfiguration(false);
       this.bootstrapLogger.debug(String.format("AppConfig.configure configuration generated successfully"));
     }
     catch (Exception e) {
@@ -311,9 +340,38 @@ public class AppConfig {
    public HashMap<String,String> getOptions() {
      return this.configurationOptions;
    }
-   
-   public static void main(String[] args) throws Exception {
-     AppConfig.sConfigure();
+
+   /**
+    * Get the current configuration object
+    * 
+    * @return Current configuration object
+    */
+   public CombinedConfiguration getCombinedConfiguration() {
+     return combinedConfiguration;
    }
+
+   /**
+    * Set the current configuration object
+    * 
+    * @param combinedConfiguration Current configuration object
+    */
+   public void setCombinedConfiguration(CombinedConfiguration combinedConfiguration) {
+     this.combinedConfiguration = combinedConfiguration;
+   }
+
+   /**
+    * Get the default configuration object
+    * 
+    * @return Default configuration object
+    */
+   public CombinedConfiguration sGetCombinedConfiguration() {
+     return AppConfig.singletonInstance.getCombinedConfiguration();
+   }
+
+   
+   
+//   public static void main(String[] args) throws Exception {
+//     AppConfig.sConfigure();
+//   }
 
 }

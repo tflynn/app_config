@@ -9,6 +9,8 @@ Copyright 2009-2013 Tracy Flynn. All rights reserved. Licensed under the Apache 
 
 AppConfig is designed to provide painless multi-environment, external and internal configuration with default settings for components and programs.
 
+It is based on Apache Commons Configuration http://commons.apache.org/configuration .
+
 ## Typical usage
 
 
@@ -26,6 +28,17 @@ Either
 or
 
       java . . . -Dcom.verymuchme.appconfig.externalConfigurationDirectory=~/local_appconfig . . .
+      
+### (Production only) Tell AppConfig to load production configurations
+
+Either
+
+      export com.verymuchme.appconfig.runTimeEnvironment=production
+
+or
+
+      java . . . -Dcom.verymuchme.appconfig.externalConfigurationDirectory=~/local_appconfig -Dcom.verymuchme.appconfig.runTimeEnvironment=production  . . .
+
 
 ### Define the database settings (if needed)
 
@@ -33,7 +46,19 @@ If the component or program requires database information, create a suitable 'da
 
 ### Initialize AppConfig in your code
 
+    
     AppConfig.sConfigure();
+    
+### And access the configuration settings
+
+    
+    . . .
+    CombinedConfiguration combinedConfiguration  = AppConfig.sGetCombinedConfiguration();
+    . . .
+    // See Apache Commons Configuration API docs for more information http://commons.apache.org/configuration/apidocs/index.html
+    String configurationValue = combinedConfiguration.getString("some property name"); 
+    . . .
+    
 
 ### Results
 
