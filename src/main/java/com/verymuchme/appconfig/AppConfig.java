@@ -14,15 +14,10 @@
  */
 package com.verymuchme.appconfig;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.StringReader;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 
-import org.apache.commons.configuration.ConfigurationException;
-import org.apache.commons.configuration.DefaultConfigurationBuilder;
 import org.apache.commons.configuration.CombinedConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -206,120 +201,79 @@ import org.slf4j.LoggerFactory;
  * </code></pre>
  * 
  * @author Tracy Flynn
- * @version 1.0
+ * @version 2.0
  * @since 1.0
  */
 public class AppConfig {
   
   /*
-   * Singleton AppConfig instance for invocation via singleton shortcuts
+   * Logger instance
    */
-  private static final AppConfig singletonInstance = new AppConfig(null);
-
-  /*
-   * Bootstrap logger instance 
-   */
-  private BootstrapLogger bootstrapLogger = null;
+  private static final Logger logger = LoggerFactory.getLogger(AppConfig.class);
   
   /*
    * Configuration options
    */
-  private HashMap<String,String> configurationOptions = null;
+  private HashMap<String,String> configurationOptions = new HashMap<String,String>();
 
   /*
    * Private copy of Configuration object returned from DefaultConfigurationBuilder
    */
   private CombinedConfiguration combinedConfiguration = null;
   
+  /*
+   * Base application package name with which to locate application property files 
+   */
+  private String applicationPropertiesPackageName = null;
   
-   /**
+  /**
    * Create a new AppConfig instance
    */
   public AppConfig() {
-    this(null);
   }
-  
-  /**
-   * Create a new AppConfig instance
-   * 
-   * @param configOptions hash of configuration options
-   */
-  public AppConfig(HashMap<String,String> configOptions) {
-    this.configurationOptions = configOptions;
-  }
-  
+
   /**
    * Configure AppConfig
-   * @throws ConfigurationException 
    */
-  public void configure() throws Exception {
-    this.bootstrapLogger = new BootstrapLogger();
-
+  public void configure() {
+    
+    // Configure logging using internal defaults - Console, DEBUG level
+    Log4jHelper.loadInitialInternalLogger();
+    logger.trace(String.format("AppConfig.configure Added initial internal logger"));
+    
     // Get the configuration definition
+    this.configurationOptions.put(ConfigurationDefinitionBuilder.APPLICATION_PROPERTIES_PACKAGE_NAME_PROPERTY_NAME, this.applicationPropertiesPackageName);
     ConfigurationDefinitionBuilder configurationBuilder = new ConfigurationDefinitionBuilder(this.configurationOptions);
-    configurationBuilder.setBootstrapLogger(this.bootstrapLogger);
-    String configurationDefinition = configurationBuilder.build();
+    if (logger.isTraceEnabled()) {
+      logger.trace(String.format("AppConfig.configure Run time options passed to ConfigurationDefinitionBuilder"));
+      Iterator<String> it = this.configurationOptions.keySet().iterator();
+      while (it.hasNext()) {
+        String currentKey = it.next();
+        logger.trace(String.format("%s=%s",currentKey,this.configurationOptions.get(currentKey)));
+      }
+    }
+    
+    
+    // Go and generate and default all property settings as appropriate
+    configurationBuilder.setInternalProperties();
+    
+    // Now that all the properties are loaded and defaulted appropriately, load the real internal Log4j configuration
+    Log4jHelper.loadInternalLogger(configurationBuilder.getInternalProperties());
+
+    // Now generate the actual configuration
+    String configurationDefinition = configurationBuilder.generateConfigurationDefinition();
+
+    logger.trace(String.format("AppConfig.configure Generated configuration definitions"));
     
     // Configure log4j first - deals with logging configuration in dependent packages
     List<String> log4jConfigNames = configurationBuilder.generateLog4jConfigurationNames();
     configurationBuilder.loadLog4jConfiguration(log4jConfigNames);
 
-    
-    File tempFile = null;
-    
-    try {
-      // Write it to a temporary file
-      File temp = File.createTempFile("tempfile", ".xml");
-      BufferedWriter bw = new BufferedWriter(new FileWriter(temp));
-      bw.write(configurationDefinition);
-      bw.close();
-  
-      // Create a handle to the temporary file
-      tempFile = temp.getAbsoluteFile();
-      String tempFileName = tempFile.getAbsolutePath();
-      this.bootstrapLogger.debug(String.format("AppConfig.configure temporary file name %s", tempFileName));
-      
-      // Load configuration definition in as a file
-      DefaultConfigurationBuilder defaultConfigurationBuilder = new DefaultConfigurationBuilder();
-      defaultConfigurationBuilder.load(tempFile);
-      this.bootstrapLogger.debug(String.format("AppConfig.configure configuration definition loaded"));
-      this.combinedConfiguration = defaultConfigurationBuilder.getConfiguration(false);
-      this.bootstrapLogger.debug(String.format("AppConfig.configure configuration generated successfully"));
-    }
-    catch (Exception e) {
-      throw e;
-    }
-    finally {
-      try {
-        // Delete the temporary file
-        tempFile.delete();
-      }
-      catch (Exception ee) {
-        // Ignore
-      }
-    }
-    
-  }
-  
-  /**
-   * Configure the singleton AppConfig instance
-   * @throws ConfigurationException 
-   */
-  public static void sConfigure() throws Exception {
-    AppConfig.singletonInstance.configure();
-  }
+    logger.trace(String.format("AppConfig.configure loaded application logging"));
 
-  /**
-   * Utility function to get system or environment variable
-   *
-   * @return Named system variable, then environment variable then null
-   */
-  public static String sSystemOrEnvironmentValue(String variableName) {
-    String variableValue = System.getProperty(variableName);
-    if (variableValue == null) {
-      variableValue = System.getenv(variableName);
-    }
-    return variableValue;
+    // Load the configuration definition
+    this.combinedConfiguration = configurationBuilder.loadConfigurationDefinition(configurationDefinition);
+    
   }
   
   
@@ -360,18 +314,22 @@ public class AppConfig {
    }
 
    /**
-    * Get the default configuration object
+    * Get the base application package name with which to locate application property files
     * 
-    * @return Default configuration object
+    * @return Package name
     */
-   public CombinedConfiguration sGetCombinedConfiguration() {
-     return AppConfig.singletonInstance.getCombinedConfiguration();
+   public String getApplicationPropertiesPackageName() {
+     return this.applicationPropertiesPackageName;
+   }
+
+   /**
+    * Set the base application package name with which to locate application property files
+    * 
+    * @param applicationPropertiesPackageName
+    */
+   public void setApplicationPropertiesPackageName(String applicationPropertiesPackageName) {
+     this.applicationPropertiesPackageName = applicationPropertiesPackageName;
    }
 
    
-   
-//   public static void main(String[] args) throws Exception {
-//     AppConfig.sConfigure();
-//   }
-
 }

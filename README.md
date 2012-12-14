@@ -1,5 +1,5 @@
 
-# AppConfig - Application configuration the easy way
+# AppConfig V2.0 - Application configuration the easy way
 
 ## A thin wrapper for Apache Commons Configuration
 

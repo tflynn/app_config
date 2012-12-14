@@ -4,7 +4,7 @@
 
     <groupId>com.verymuchme.appconfig</groupId>
     <artifactId>app_config</artifactId>
-    <version>1.2</version>
+    <version>2.0</version>
     <packaging>jar</packaging>
 
     <name>app_config</name>
@@ -15,18 +15,18 @@
         <internal.repo.path>file:///Users/tracy/Everything/Activities/mvn-repo-public</internal.repo.path>
     </properties>
 
-  <distributionManagement>
-    <repository>
-      <id>Release Repo</id>
-      <name>Internal Release Repository</name>
-      <url>${internal.repo.path}/releases</url>
-    </repository>
-    <snapshotRepository>
-      <id>Snapshot Repo</id>
-      <name>Internal Snapshot Repository</name>
-      <url>${internal.repo.path}/snapshots</url>
-    </snapshotRepository>
-  </distributionManagement>
+    <distributionManagement>
+      <repository>
+        <id>Release Repo</id>
+        <name>Internal Release Repository</name>
+        <url>${internal.repo.path}/releases</url>
+      </repository>
+      <snapshotRepository>
+        <id>Snapshot Repo</id>
+        <name>Internal Snapshot Repository</name>
+        <url>${internal.repo.path}/snapshots</url>
+      </snapshotRepository>
+    </distributionManagement>
     
     <build>
         <plugins>
@@ -67,6 +67,7 @@
                 <destDir>docs</destDir>
               </configuration>
             </plugin>
+            
         </plugins>
     </build>
 

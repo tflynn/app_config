@@ -14,15 +14,24 @@
  */
 package com.verymuchme.appconfig;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
+import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Properties;
 
+import org.apache.commons.configuration.CombinedConfiguration;
+import org.apache.commons.configuration.DefaultConfigurationBuilder;
 import org.apache.log4j.PropertyConfigurator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Dynamically build a configuration definition compatible with Apache Commons Configuration
@@ -30,227 +39,181 @@ import org.apache.log4j.PropertyConfigurator;
  * See the documentation in AppConfig for details.
  * 
  * @author Tracy Flynn
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public class ConfigurationDefinitionBuilder {
 
-  private static final String DEFINITION_PREAMBLE  = "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>";
+  private static final Logger logger = LoggerFactory.getLogger(ConfigurationDefinitionBuilder.class);
   
-  private static final String DEFINITION_ELEMENT_OPEN = "<configuration>";
-  private static final String DEFINITION_ELEMENT_CLOSE = "</configuration>";
+  private static final String INTERNAL_DEFAULTS_PROPERTY_FILE_NAME_PROPERTY_NAME = "com.verymuchme.appconfig.internalDefaultPropertiesFileName";
+  private static final String INTERNAL_DEFAULTS_PROPERTY_FILE_NAME = "internal-defaults.properties";
   
-  private static final String DEFINITION_SYSTEM_PROPERTIES = "<system/>";
-  
-  private static final String SYSTEM_PROPERTIES_OVERRIDE_PROPERTY_NAME = "com.verymuchme.appconfig.systemPropertiesOverride";
-  private static final String RUN_TIME_ENVIRONMENT_PROPERTY_NAME = "com.verymuchme.appconfig.runTimeEnvironment";
-  private static final String EXTERNAL_CONFIGURATION_DIRECTORY_PROPERTY_NAME = "com.verymuchme.appconfig.externalConfigurationDirectory";
-  
-  private static final String DEFAULT_RUN_TIME_ENVIRONMENT = "development";
-  private static final List<String> PERMITTED_RUN_TIME_ENVIRONMENTS = Arrays.asList("development", "production", "test");
-  
-  private static final String DEFAULT_APPLICATION_CONFIGURATION_NAME_PREFIX = "application";
-  private static final String APPLICATION_CONFIGURATION_NAME_PREFIX_PROPERTY_NAME = "com.verymuchme.appconfig.applicationConfigurationPrefix";
-  
-  private static final String DEFAULT_DATABASE_CONFIGURATION_NAME_PREFIX = "database";
-  private static final String DATABASE_CONFIGURATION_NAME_PREFIX_PROPERTY_NAME = "com.verymuchme.appconfig.database.ConfigurationPrefix";
-  private static final String DEFAULT_DATABASE_CONFIGURATION_ENABLED = "false";
-  private static final String DEFAULT_DATABASE_CONFIGURATION_ENABLED_PROPERTY_NAME = "com.verymuchme.appconfig.database.defaultConfigurationEnabled";
-  
-  
-  private static final String DEFAULT_LOG4J_CONFIGURATION_NAME_PREFIX = "log4j";
-  private static final String LOG4J_CONFIGURATION_NAME_PREFIX_PROPERTY_NAME = "com.verymuchme.appconfig.log4j.ConfigurationPrefix";
-  private static final String DEFAULT_LOG4J_CONFIGURATION_ENABLED = "true";
-  private static final String DEFAULT_LOG4J_CONFIGURATION_ENABLED_PROPERTY_NAME = "com.verymuchme.appconfig.log4j.defaultConfigurationEnabled";
-  
-  private static final String DEFAULT_CONFIGURATION_NAME_SUFFIX = "properties";
-  private static final String CONFIGURATION_NAME_SUFFIX_PROPERTY_NAME = "com.verymuchme.appconfig.configurationNameSuffix";
-  
-  private static final String DEFAULT_CONFIGURATION_NAME = "defaults";
-  private static final String DEFAULT_CONFIGURATION_NAME_PROPERTY_NAME = "com.verymuchme.appconfig.defaultConfigurationName";
-  
-  
-  /*
-   * Bootstrap logger instance 
-   */
-  private BootstrapLogger bootstrapLogger = null;
+  public static final String APPLICATION_PROPERTIES_PACKAGE_NAME_PROPERTY_NAME = "application.propertiesPackageName";
+  public static final String APPLICATION_PROPERTIES_PACKAGE_DIR_PROPERTY_NAME = "application.propertiesPackageDir";
 
-  /*
-   * Specify whether System properties should override all settings. Default true
-   */
-  private Boolean systemPropertiesOverride = Boolean.TRUE;
+  public static final String SYSTEM_PROPERTIES_OVERRIDE_PROPERTY_NAME = "com.verymuchme.appconfig.systemPropertiesOverride";
+  public static final String EXTERNAL_CONFIGURATION_DIRECTORY_PROPERTY_NAME = "com.verymuchme.appconfig.externalConfigurationDirectory";
   
-  /*
-   * Runtime environment
-   */
-  private String runTimeEnvironment = null;
+  public static final String PERMITTED_RUN_TIME_ENVIRONMENTS_PROPERTY_NAME = "com.verymuchme.appconfig.permittedRunTimeEnvironments";
+  public static final String DEFAULT_RUN_TIME_ENVIRONMENT_PROPERTY_NAME = "com.verymuchme.appconfig.defaultRunTimeEnvironment";
+  public static final String RUN_TIME_ENVIRONMENT_PROPERTY_NAME = "com.verymuchme.appconfig.runTimeEnvironment";
   
-  /*
-   * External configuration directory
-   */
-  private String externalConfigurationDirectory = null;
-
+  public static final String APPLICATION_CONFIGURATION_NAME_PREFIX_PROPERTY_NAME = "com.verymuchme.appconfig.applicationConfigurationPrefix";
+  
+  public static final String DATABASE_CONFIGURATION_NAME_PREFIX_PROPERTY_NAME = "com.verymuchme.appconfig.database.ConfigurationPrefix";
+  public static final String DEFAULT_DATABASE_CONFIGURATION_ENABLED_PROPERTY_NAME = "com.verymuchme.appconfig.database.defaultConfigurationEnabled";
+  
+  public static final String LOG4J_CONFIGURATION_NAME_PREFIX_PROPERTY_NAME = "com.verymuchme.appconfig.log4j.ConfigurationPrefix";
+  public static final String DEFAULT_LOG4J_CONFIGURATION_ENABLED_PROPERTY_NAME = "com.verymuchme.appconfig.log4j.defaultConfigurationEnabled";
+  
+  public static final String CONFIGURATION_NAME_SUFFIX_PROPERTY_NAME = "com.verymuchme.appconfig.configurationNameSuffix";
+  
+  public static final String DEFAULT_CONFIGURATION_NAME_PROPERTY_NAME = "com.verymuchme.appconfig.defaultConfigurationName";
+  
+  public static final String DEFAULT_FREEMARKER_CONFIGURATION_TEMPLATE_PROPERTY_NAME = "com.verymuchme.appconfig.configurationTemplateName";
+  public static final String FREEMARKER_CONFIGURATION_BASE_CLASS_PROPERTY_NAME = "com.verymuchme.appconfig.freemarker.baseClassName";
+  
+  public static final String DEFAULT_LOGGING_LEVEL_PROPERTY_NAME = "com.verymuchme.appconfig.log4j.logLevel";
+  public static final String INTERNAL_LOG4J_CONFIGURATION_FILE_PROPERTY_NAME = "com.verymuchme.appconfig.log4j.internalConfigurationFileName";
   
   /*
    * Configuration options
    */
   private HashMap<String,String> configurationOptions = null;
   
-
+  /*
+   * Internal properties object. References for all internal settings 
+   */
+  private ExtendedProperties internalProperties = null;
+   
   /**
    * Create a new instance
    */
   public ConfigurationDefinitionBuilder(HashMap<String,String> configOptions) {
     this.configurationOptions = configOptions;
-  }
-
-  /**
-   * Build the Apache Commons Configuration-compliant configuration definition
-   * 
-   * @return XML String with the configuration definition
-   */
-  public String build() {
-    this.setDefaults();
-    return this.toString();
-  }
-  
-  /**
-   * Get the bootstrap logger
-   *  
-   * @return BootstrapLogger instance or null
-   */
-  public BootstrapLogger getBootstrapLogger() {
-    return bootstrapLogger;
-  }
-
-  /**
-   * Set the bootstrap logger instance
-   * 
-   * @param bootstrapLogger instance
-   */
-  public void setBootstrapLogger(BootstrapLogger bootstrapLogger) {
-    this.bootstrapLogger = bootstrapLogger;
-  }
-
-  /**
-   * Get the state of the SystemPropertiesOverride option
-   * 
-   * @return Boolean.TRUE if set, Boolean.FALSE otherwise
-   */
-  public Boolean getSystemPropertiesOverride() {
-    if (systemPropertiesOverride != null) {
-      return systemPropertiesOverride;
-    }
-    else {
-      return Boolean.FALSE;
+    String packageName = this.configurationOptions.get(APPLICATION_PROPERTIES_PACKAGE_NAME_PROPERTY_NAME);
+    if (packageName != null) {
+      String packageDir = packageName.replace(".", "/");
+      this.configurationOptions.put(APPLICATION_PROPERTIES_PACKAGE_DIR_PROPERTY_NAME, packageDir);
     }
   }
 
   /**
-   * Set the state of the SystemPropertiesOverride option
+   * Set internal properties.
    * 
-   * @param systemPropertiesOverride
+   * Default in order to options, command=line, environment, defaults
+   * 
+   * @throws Exception if the internal properties cannot be loaded
    */
-  public void setSystemPropertiesOverride(Boolean systemPropertiesOverride) {
-    this.systemPropertiesOverride = systemPropertiesOverride;
-  }
+  public void setInternalProperties() {
+    
+    Properties internalDefaults = null;
+    InputStream internalDefaultsInputStream = null;
+    
+    // Load internal defaults
+    try {
+      internalDefaults = new Properties();
+      internalDefaultsInputStream = getClass().getResourceAsStream(INTERNAL_DEFAULTS_PROPERTY_FILE_NAME);
+      internalDefaults.load(internalDefaultsInputStream);
+      internalDefaultsInputStream.close();
+    }
+    catch (Exception e) {
+      String errorMessage = "AppConfig.ConfigurationDefinitionBuilder.setInternalProperties failed to load the default internal properties for AppConfig";
+      logger.error(errorMessage,e);
+      throw new AppConfigException(errorMessage,e);
+    }
 
-  /**
-   * Get run-time environment. Defaults to 'development' if not overridden.
-   * 
-   * @return One of the strings 'development','production' or 'test'.
-   */
-  public String getRunTimeEnvironment() {
-    return this.runTimeEnvironment;
-  }
+    try {
+      boolean overriddenAlready = false; 
+      
+      while (true) {
   
-  /** 
-   * Set the run-time environment. Defaults to 'development' if any errors during setting
-   * 
-   * @param runTimeEnv One of the strings 'development','production' or 'test'.
-   */
-  public void setRunTimeEnvironment(String runTimeEnv) {
-    if (runTimeEnv == null) {
-      runTimeEnv = this.getConfigValue(RUN_TIME_ENVIRONMENT_PROPERTY_NAME,null);
-      if (runTimeEnv == null) {
-        runTimeEnv = DEFAULT_RUN_TIME_ENVIRONMENT;
-        this.bootstrapLogger.debug(String.format("AppConfig.setRunTimeEnvironment no runtime environment set, defaulting to '%s'",DEFAULT_RUN_TIME_ENVIRONMENT));
+        // Load the defaults first
+        this.internalProperties = new ExtendedProperties();
+        // Use putAll rather than the constructor so as not to get multiple copies of the same property
+        this.internalProperties.putAll(internalDefaults);
+        
+        // Do this in reverse order so the value defaulting order works
+        @SuppressWarnings("unchecked")
+        Enumeration<String> propertyNames = (Enumeration<String>) this.internalProperties.propertyNames();
+        while (propertyNames.hasMoreElements()) {
+          String propertyName = propertyNames.nextElement();
+          String overrideValue = null;
+          overrideValue = System.getenv(propertyName);
+          if (overrideValue != null) {
+            this.internalProperties.put(propertyName, overrideValue);
+          }
+          overrideValue = System.getProperty(propertyName);
+          if (overrideValue != null) {
+            this.internalProperties.put(propertyName, overrideValue);
+          }
+          overrideValue = this.configurationOptions.get(propertyName);
+          if (overrideValue != null) {
+            this.internalProperties.put(propertyName, overrideValue);
+          }
+        }
+        
+        // Check for an override to the internal properties file name. If present, reload everything
+        String overriddenInternalPropertiesFileName = this.internalProperties.getNullProperty(INTERNAL_DEFAULTS_PROPERTY_FILE_NAME_PROPERTY_NAME);
+        if (overriddenInternalPropertiesFileName == null) {
+          // No override, so load is complete
+          break;
+        }
+        else {
+          if (overriddenAlready) {
+            // Only override once
+            break;
+          }
+          else {
+            // Go around again to reload everything against the new defaults
+            logger.trace(String.format("AppConfig.ConfigurationDefinitionBuilder.setInternalProperties Reloading because found internal property file override %s",overriddenInternalPropertiesFileName));
+            internalDefaults = new Properties();
+            internalDefaultsInputStream = getClass().getResourceAsStream(overriddenInternalPropertiesFileName);
+            internalDefaults.load(internalDefaultsInputStream);
+            internalDefaultsInputStream.close();        
+            overriddenAlready = true;
+          }
+        }
       }
     }
+    catch (Exception e) {
+      String errorMessage = "AppConfig.ConfigurationDefinitionBuilder.setInternalProperties failed to load internal AppConfig properties or overrides";
+      logger.error(errorMessage,e);
+      throw new AppConfigException(errorMessage,e);
+    }
+    
+    checkRunTimeEnvironment();
+
+    if (logger.isTraceEnabled()) {
+      logger.trace(String.format("ConfigurationDefinitionBuilder.setInternalProperties internalProperties settings"));
+      this.internalProperties.list(System.out);
+    }
+
+  } 
+    
+  
+  /** 
+   * Check the run-time environment. Defaults to 'development' if any errors during setting
+   */
+  public void checkRunTimeEnvironment() {
     boolean matched = false;
-    for (String env : PERMITTED_RUN_TIME_ENVIRONMENTS) {
+    String runTimeEnv = this.internalProperties.getProperty(RUN_TIME_ENVIRONMENT_PROPERTY_NAME);
+    for (String env : this.internalProperties.getListProperty(PERMITTED_RUN_TIME_ENVIRONMENTS_PROPERTY_NAME)) {
       if (env.equalsIgnoreCase(runTimeEnv)) {
         runTimeEnv = env;
         matched = true;
+        break;
       }
     }
-    if (! matched) {
-      runTimeEnv = DEFAULT_RUN_TIME_ENVIRONMENT;
-      this.bootstrapLogger.debug(String.format("AppConfig.setRunTimeEnvironment invalid runtime environment set, defaulting to '%s'",DEFAULT_RUN_TIME_ENVIRONMENT));
+    if (!matched) {
+      runTimeEnv = this.internalProperties.getProperty(DEFAULT_RUN_TIME_ENVIRONMENT_PROPERTY_NAME);
+      this.internalProperties.setProperty(RUN_TIME_ENVIRONMENT_PROPERTY_NAME,runTimeEnv);
+      logger.trace(String.format("AppConfig.setRunTimeEnvironment invalid runtime environment set, defaulting to '%s'",runTimeEnv));
     }
-    this.runTimeEnvironment = runTimeEnv;
-    this.bootstrapLogger.debug(String.format("AppConfig.setRunTimeEnvironment setting runtime environment to '%s'",runTimeEnv));
-  }
-  
-  /**
-   * Get external configuration directory
-   * 
-   * @return Fully-qualified external configuration directory, or null if none specified
-   */
-  public String getExternalConfigurationDirectory() {
-    if (this.externalConfigurationDirectory == null) {
-      this.externalConfigurationDirectory = this.getConfigValue(EXTERNAL_CONFIGURATION_DIRECTORY_PROPERTY_NAME,null);
+    else {
+      logger.trace(String.format("AppConfig.setRunTimeEnvironment setting runtime environment to '%s'",runTimeEnv));
     }
-    return this.externalConfigurationDirectory;
-  }
-  
-  /**
-   * Set the external configuration directory
-   * 
-   * @param externalConfDir External configuration directory or null if not set
-   */
-  public void setExternalConfigurationDirectory(String externalConfDir) {
-    this.externalConfigurationDirectory = externalConfDir;
-  }
-  
-  /**
-   * Generate configuration lines for variable configuration files 
-   */
-  public List<String> generateVariableDefinitions() {
-    List<String> definitions = new ArrayList<String>();
-    String suffix = this.getConfigValue(CONFIGURATION_NAME_SUFFIX_PROPERTY_NAME, DEFAULT_CONFIGURATION_NAME_SUFFIX);
-    String applicationPrefix = this.getConfigValue(APPLICATION_CONFIGURATION_NAME_PREFIX_PROPERTY_NAME, DEFAULT_APPLICATION_CONFIGURATION_NAME_PREFIX);
-    String databasePrefix = this.getConfigValue(DATABASE_CONFIGURATION_NAME_PREFIX_PROPERTY_NAME, DEFAULT_DATABASE_CONFIGURATION_NAME_PREFIX);
-    String rtEnv = this.getRunTimeEnvironment();
-    String defaultPropName = this.getConfigValue(DEFAULT_CONFIGURATION_NAME_PROPERTY_NAME,DEFAULT_CONFIGURATION_NAME);
-    if (this.externalConfigurationDirectory != null ) {
-      String confDir = this.externalConfigurationDirectory;
-      String extApplicationDef = String.format("<properties fileName=\"%s/%s-%s.%s\" config-optional=\"true\"/>",confDir,applicationPrefix,rtEnv,suffix);
-      String extDatabaseDef = String.format("<properties fileName=\"%s/%s-%s.%s\" config-optional=\"true\"/>",confDir,databasePrefix,rtEnv,suffix);
-      definitions.add(extApplicationDef);
-      definitions.add(extDatabaseDef);
-    }
-    String applicationDef = String.format("<properties fileName=\"%s-%s.%s\" config-optional=\"true\"/>",applicationPrefix,rtEnv,suffix);
-    String databaseDef = String.format("<properties fileName=\"%s-%s.%s\" config-optional=\"true\"/>", databasePrefix,rtEnv,suffix);
-    definitions.add(applicationDef);
-    definitions.add(databaseDef);
-    
-    String applicationDefault = String.format("<properties fileName=\"%s-%s.%s\"/>",applicationPrefix,defaultPropName,suffix);
-    String databaseDefault = String.format("<properties fileName=\"%s-%s.%s\"/>",databasePrefix,defaultPropName,suffix);
-    //String log4jDefault = String.format("<properties fileName=\"%s-%s.%s\"/>",log4jPrefix,defaultPropName,suffix);
-    definitions.add(applicationDefault);
-    
-    String includeDatabaseDefault = this.getConfigValue(DEFAULT_DATABASE_CONFIGURATION_ENABLED_PROPERTY_NAME, DEFAULT_DATABASE_CONFIGURATION_ENABLED);
-    if (includeDatabaseDefault != null && includeDatabaseDefault.equalsIgnoreCase("true")) {
-      definitions.add(databaseDefault);
-    }
-
-    this.bootstrapLogger.debug(String.format("AppConfig.configure configurationDefinitions"));
-    for (String definition : definitions) {
-      this.bootstrapLogger.debug(String.format("%s",definition));
-    }
-
-    return definitions;
   }
   
   /**
@@ -260,26 +223,27 @@ public class ConfigurationDefinitionBuilder {
    */
   public List<String> generateLog4jConfigurationNames() {
     List<String> configNames = new ArrayList<String>();
-    String suffix = this.getConfigValue(CONFIGURATION_NAME_SUFFIX_PROPERTY_NAME, DEFAULT_CONFIGURATION_NAME_SUFFIX);
-    String log4jPrefix = this.getConfigValue(LOG4J_CONFIGURATION_NAME_PREFIX_PROPERTY_NAME, DEFAULT_LOG4J_CONFIGURATION_NAME_PREFIX);
-    String rtEnv = this.getRunTimeEnvironment();
-    String defaultPropName = this.getConfigValue(DEFAULT_CONFIGURATION_NAME_PROPERTY_NAME,DEFAULT_CONFIGURATION_NAME);
-    if (this.externalConfigurationDirectory != null ) {
-      String confDir = this.externalConfigurationDirectory;
+    String suffix = this.internalProperties.getProperty(CONFIGURATION_NAME_SUFFIX_PROPERTY_NAME);
+    String log4jPrefix = this.internalProperties.getProperty(LOG4J_CONFIGURATION_NAME_PREFIX_PROPERTY_NAME);
+    String rtEnv = this.internalProperties.getProperty(RUN_TIME_ENVIRONMENT_PROPERTY_NAME);
+    String defaultPropName = this.internalProperties.getProperty(DEFAULT_CONFIGURATION_NAME_PROPERTY_NAME);
+    String externalConfigurationDirectory = this.internalProperties.getNullProperty(EXTERNAL_CONFIGURATION_DIRECTORY_PROPERTY_NAME);
+    if (externalConfigurationDirectory != null ) {
+      String confDir = externalConfigurationDirectory;
       String extLog4jDef = String.format("%s/%s-%s.%s",confDir,log4jPrefix,rtEnv,suffix);
       configNames.add(extLog4jDef);
     }
     String log4jDef = String.format("%s-%s.%s",log4jPrefix,rtEnv,suffix);
     configNames.add(log4jDef);
 
-    String includeLog4jDefault = this.getConfigValue(DEFAULT_LOG4J_CONFIGURATION_ENABLED_PROPERTY_NAME, DEFAULT_LOG4J_CONFIGURATION_ENABLED);
-    if (includeLog4jDefault != null && includeLog4jDefault.equalsIgnoreCase("true")) {
+    boolean includeLog4jDefault = this.internalProperties.getBooleanProperty(DEFAULT_LOG4J_CONFIGURATION_ENABLED_PROPERTY_NAME);
+    if (includeLog4jDefault) {
       String log4jDefault = String.format("%s-%s.%s",log4jPrefix,defaultPropName,suffix);
       configNames.add(log4jDefault);
     }
     
     for (String confName : configNames) {
-      this.bootstrapLogger.debug(String.format("AppConfig.generateLog4jConfigurationNames %s",confName));
+      logger.trace(String.format("AppConfig.generateLog4jConfigurationNames %s",confName));
     }
     
     return configNames;
@@ -291,50 +255,149 @@ public class ConfigurationDefinitionBuilder {
    * @param configNames List of possible config file names
    * @return true if configuration found and loaded, false otherwise
    */
-  public boolean loadLog4jConfiguration(List<String> configNames) throws Exception {
+  public boolean loadLog4jConfiguration(List<String> configNames) {
 
     boolean configFileFound = false;
-    String configFileLoaded = null;
-    String loadingMethod = null;
-    
-    for (String configName : configNames) {
-      File configFile = new File(configName);
-      if (configFile.isAbsolute() && configFile.exists()) {
-        PropertyConfigurator.configure(configName);
-        configFileFound = true;
-        configFileLoaded = configName;
-        loadingMethod = "absolute";
-        break;
-      }
-      ClassLoader loader = Thread.currentThread().getContextClassLoader();
-      URL url = loader.getResource(configName);
-      if (url != null) {
-        PropertyConfigurator.configure(url);
-        configFileFound = true;
-        configFileLoaded = configName;
-        loadingMethod = "classpath";
-        break;
-      }
-      URL systemUrl = ClassLoader.getSystemResource(configName);
-      if (systemUrl != null) {
-        PropertyConfigurator.configure(url);
-        configFileFound = true;
-        configFileLoaded = configName;
-        loadingMethod = "system classpath";
-        break;
-      }
-    }
-    
-    if (configFileFound) {
-      this.bootstrapLogger.debug(String.format("AppConfig.loadLog4jConfiguration loaded configuration %s using %s",configFileLoaded, loadingMethod));
-    }
-    else {
-      this.bootstrapLogger.debug(String.format("AppConfig.loadLog4jConfiguration failed to load any configuration"));
-    }
 
+    try {
+      String configFileLoaded = null;
+      String loadingMethod = null;
+      
+      for (String configName : configNames) {
+        File configFile = new File(configName);
+        if (configFile.isAbsolute() && configFile.exists()) {
+          PropertyConfigurator.configure(configName);
+          configFileFound = true;
+          configFileLoaded = configName;
+          loadingMethod = "absolute";
+          break;
+        }
+        ClassLoader loader = Thread.currentThread().getContextClassLoader();
+        URL url = loader.getResource(configName);
+        if (url != null) {
+          PropertyConfigurator.configure(url);
+          configFileFound = true;
+          configFileLoaded = configName;
+          loadingMethod = "classpath";
+          break;
+        }
+        URL systemUrl = ClassLoader.getSystemResource(configName);
+        if (systemUrl != null) {
+          PropertyConfigurator.configure(url);
+          configFileFound = true;
+          configFileLoaded = configName;
+          loadingMethod = "system classpath";
+          break;
+        }
+      }
+      
+      if (configFileFound) {
+        logger.trace(String.format("AppConfig.loadLog4jConfiguration loaded configuration %s using %s",configFileLoaded, loadingMethod));
+      }
+      else {
+        logger.trace(String.format("AppConfig.loadLog4jConfiguration failed to load any configuration"));
+      }
+    }
+    catch (Exception e) {
+      String errorMessage = "AppConfig.ConfigurationDefinitionBuilder.oadLog4jConfiguration failed to load application logging configuration";
+      logger.error(errorMessage,e);
+      throw new AppConfigException(errorMessage,e);
+    }
     return configFileFound;
   }
   
+  /**
+   * Load a Configuration Definition file using Apache Commons Configuration DefaultConfigurationBuilder
+   * 
+   * @param configurationDefinition
+   * @return CommonConfiguration instance
+   */
+  public CombinedConfiguration loadConfigurationDefinition(String configurationDefinition) {
+    
+    File tempFile = null;
+    CombinedConfiguration combinedConfiguration = null;
+    
+    try {
+
+      // Write it to a temporary file
+      File temp = File.createTempFile("tempfile", ".xml");
+      BufferedWriter bw = new BufferedWriter(new FileWriter(temp));
+      bw.write(configurationDefinition);
+      bw.close();
+  
+      // Create a handle to the temporary file
+      tempFile = temp.getAbsoluteFile();
+      String tempFileName = tempFile.getAbsolutePath();
+      logger.trace(String.format("AppConfig.configure temporary file name %s", tempFileName));
+      
+      // Load configuration definition in as a file
+      DefaultConfigurationBuilder defaultConfigurationBuilder = new DefaultConfigurationBuilder();
+      defaultConfigurationBuilder.load(tempFile);
+      logger.trace(String.format("AppConfig.ConfigurationDefinitionBuilder.loadConfigurationDefinition configuration definition loaded"));
+      combinedConfiguration = defaultConfigurationBuilder.getConfiguration(false);
+      logger.trace(String.format("AppConfig.ConfigurationDefinitionBuilder.loadConfigurationDefinition configuration generated successfully"));
+    }
+    catch (Exception e) {
+      String errorMessage = "AppConfig.ConfigurationDefinitionBuilder.loadConfigurationDefinition failed to load configuration definition file";
+      logger.error(errorMessage,e);
+      throw new AppConfigException(errorMessage,e);
+    }
+    finally {
+      try {
+        // Delete the temporary file
+        tempFile.delete();
+      }
+      catch (Exception ee) {
+        // Ignore
+      }
+    }
+    return combinedConfiguration;
+  }
+
+  /**
+   * Get the configuration definition as an (XML) string
+   */
+  public String generateConfigurationDefinition() {
+
+      try {
+        String suffix = this.internalProperties.getProperty(CONFIGURATION_NAME_SUFFIX_PROPERTY_NAME);
+        String applicationPrefix = this.internalProperties.getProperty(APPLICATION_CONFIGURATION_NAME_PREFIX_PROPERTY_NAME);
+        String databasePrefix = this.internalProperties.getProperty(DATABASE_CONFIGURATION_NAME_PREFIX_PROPERTY_NAME);
+        String rtEnv = this.internalProperties.getProperty(RUN_TIME_ENVIRONMENT_PROPERTY_NAME);
+        String defaultPropName = this.internalProperties.getProperty(DEFAULT_CONFIGURATION_NAME_PROPERTY_NAME);
+        boolean systemOverride = this.internalProperties.getBooleanProperty(SYSTEM_PROPERTIES_OVERRIDE_PROPERTY_NAME);
+        String systemOverrideString = systemOverride ? "true" : "false";
+        String packageDir = this.internalProperties.getProperty(APPLICATION_PROPERTIES_PACKAGE_DIR_PROPERTY_NAME);
+        
+        HashMap<String,String> templateData = new HashMap<String,String>();
+        templateData.put("suffix", suffix);
+        templateData.put("applicationPrefix", applicationPrefix);
+        templateData.put("databasePrefix", databasePrefix);
+        templateData.put("rtEnv", rtEnv);
+        templateData.put("defaultPropName", defaultPropName);
+        templateData.put("systemOverride", systemOverrideString);
+        templateData.put("packageDir", packageDir);
+  
+        //TODO Error handling, override for template name
+        FreemarkerHandler freemarkerHandler = null;
+        String freemarkerBaseClassName = this.internalProperties.getNullProperty(FREEMARKER_CONFIGURATION_BASE_CLASS_PROPERTY_NAME);
+        if (freemarkerBaseClassName == null) {
+          freemarkerHandler = new FreemarkerHandler();
+        }
+        else {
+          Class baseClass = Class.forName(freemarkerBaseClassName);
+          freemarkerHandler = new FreemarkerHandler(baseClass);
+        }
+        freemarkerHandler.setInternalProperties(this.internalProperties);
+        String templateContents = freemarkerHandler.getTemplate(this.internalProperties.getProperty(DEFAULT_FREEMARKER_CONFIGURATION_TEMPLATE_PROPERTY_NAME),templateData);
+        return templateContents;
+      }
+      catch (Exception e) {
+        String errorMessage = "AppConfig.ConfigurationDefinitionBuilder.generateConfigurationDefinition generate configuration definition from template";
+        logger.error(errorMessage,e);
+        throw new AppConfigException(errorMessage,e);
+      }
+  }
 
   /**
    * Set configuration options
@@ -353,66 +416,16 @@ public class ConfigurationDefinitionBuilder {
    public HashMap<String,String> getOptions() {
      return this.configurationOptions;
    }
-  
-   /**
-    * Get value of the specified setting - in order look at option setting, system, environment then null
-    * 
-    * @return Named setting or null
-    */
-   public String getConfigValue(String valueName, String defaultValue) {
-     String retVal = valueName;
-     if (valueName != null) {
-       if (this.configurationOptions == null) {
-         retVal = null;
-       }
-       else {
-         if (this.configurationOptions.containsKey(valueName)) {
-           retVal = this.configurationOptions.get(valueName);
-         }
-       }
-       if (retVal == null) {
-           retVal = AppConfig.sSystemOrEnvironmentValue(valueName);
-       }
-     }
-     if (retVal == null) {
-       retVal = defaultValue;
-     }
-     return retVal;
-   }
-   
-  /**
-   * Get the configuration definition as an (XML) string
-   */
-  public String toString() {
-    String nl = System.getProperty("line.separator");
-    StringBuffer outputString = new StringBuffer();
-    outputString.append(DEFINITION_PREAMBLE).append(nl);
-    outputString.append(DEFINITION_ELEMENT_OPEN).append(nl);
-    if (getSystemPropertiesOverride() == Boolean.TRUE) {
-      outputString.append(DEFINITION_SYSTEM_PROPERTIES).append(nl);
-    }
-    List<String> variableFileEntries = this.generateVariableDefinitions();
-    for (String variableFileEntry : variableFileEntries) {
-      outputString.append(variableFileEntry).append(nl);
-    }
-    outputString.append(DEFINITION_ELEMENT_CLOSE).append(nl);
-    return outputString.toString();
-  }
-  
-  /*
-   * Set the defaults for processing a build
-   */
-  private void setDefaults() {
-    String sOverrideValue = this.getConfigValue(SYSTEM_PROPERTIES_OVERRIDE_PROPERTY_NAME,null);
-    if (sOverrideValue != null && sOverrideValue.equalsIgnoreCase("true")) {
-      this.setSystemPropertiesOverride(Boolean.TRUE);
-    }
-    else {
-      this.setSystemPropertiesOverride(Boolean.FALSE);
-    }
-    this.setRunTimeEnvironment(null);
-    this.getExternalConfigurationDirectory();
-  }
 
-  
+   /**
+    * Get AppConfig internal properties
+    * 
+    * @return ExtendedProperties instance with all fully resolved settings
+    */
+   public ExtendedProperties getInternalProperties() {
+     return internalProperties;
+   }
+
+
+   
 }
