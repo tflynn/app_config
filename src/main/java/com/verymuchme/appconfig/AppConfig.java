@@ -24,7 +24,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * 
- * <h1>AppConfig - Application configuration the easy way</h1>
+ * <h1>AppConfig V2.0 - Application configuration the easy way</h1>
  * 
  * <h2>A thin wrapper for Apache Commons Configuration</h2>
  * 
@@ -32,16 +32,34 @@ import org.slf4j.LoggerFactory;
  * 
  * <h2>Introduction</h2>
  * 
- * <p>AppConfig is designed to provide painless multi-environment, external and internal configuration with default settings for components and programs.</p>
+ * <p>AppConfig is designed to provide painless configuration for multiple runtime environments based on a model similar to the Ruby-on-Rails &#39;development/production/test&#39; approach with all the appropriate defaulting and overriding of settings.</p>
+ * 
+ * <p>It is particularly targeted at the problem of configuring components and applications &#39;from the outside&#39; without needing to modify the packaged artifact.</p>
  * 
  * <p>It is based on Apache Commons Configuration http://commons.apache.org/configuration .</p>
  * 
  * <h2>Typical usage</h2>
  * 
+ * <p>Suppose the settings for a component or a program that&#39;s been built with AppConfig support need to be changed.</p>
+ * 
  * <h3>Create a configuration directory</h3>
+ * 
+ * <p><br/></p>
  * 
  * <pre><code>  mkdir ~/local_appconfig
  * </code></pre>
+ * 
+ * <h3>Define environment-specific configurations</h3>
+ * 
+ * <p>Put environment-specific settings into the configuration directory in files with the naming patterns:</p>
+ * 
+ * <ul>
+ * <li>application-[environemnt].properties</li>
+ * <li>database-[environment].properties</li>
+ * <li>log4j-[environment].properties</li>
+ * </ul>
+ * 
+ * <p>The contents of the files follow Java Property file syntax. The properties clearly have to match those that configure the component that&#39;s being configured.</p>
  * 
  * <h3>Tell AppConfig where the directory is</h3>
  * 
@@ -52,7 +70,7 @@ import org.slf4j.LoggerFactory;
  * 
  * <p>or</p>
  * 
- * <pre><code>  java . . . -Dcom.verymuchme.appconfig.externalConfigurationDirectory=~/local_appconfig . . .
+ * <pre><code>  java â€¦ -Dcom.verymuchme.appconfig.externalConfigurationDirectory=~/local_appconfig ...
  * </code></pre>
  * 
  * <h3>(Production only) Tell AppConfig to load production configurations</h3>
@@ -64,37 +82,46 @@ import org.slf4j.LoggerFactory;
  * 
  * <p>or</p>
  * 
- * <pre><code>  java . . . -Dcom.verymuchme.appconfig.externalConfigurationDirectory=~/local_appconfig -Dcom.verymuchme.appconfig.runTimeEnvironment=production  . . .
+ * <pre><code>  java â€¦ -Dcom.verymuchme.appconfig.externalConfigurationDirectory=~/local_appconfig \
+ *          -Dcom.verymuchme.appconfig.runTimeEnvironment=production ...
  * </code></pre>
  * 
- * <h3>Define the database settings (if needed)</h3>
+ * <p>By default, AppConfig assumes you&#39;re running in &#39;development&#39; mode.</p>
  * 
- * <p>If the component or program requires database information, create a suitable &#39;database-[environment].properties&#39; file in the configuration directory. (See below).</p>
+ * <h2>That&#39;s it!!</h2>
  * 
- * <h3>Initialize AppConfig in your code</h3>
+ * <h2>Some details</h2>
  * 
- * <pre><code>AppConfig.sConfigure();
+ * <p>AppConfig is designed to provide painless configuration for multiple runtime environments based on a model similar to the Ruby-on-Rails &#39;development/production/test&#39; approach with all the appropriate defaulting and overriding of settings.</p>
+ * 
+ * <p>It is particularly targeted at the problem of configuring components and applications &#39;from the outside&#39; without needing to modify the packaged artifact.</p>
+ * 
+ * <p>It is based on Apache Commons Configuration http://commons.apache.org/configuration .
+ * AppConfig is designed to provide painless multi-environment, external and internal configuration with default settings for components and programs.</p>
+ * 
+ * <h3>Using AppConfig in code</h3>
+ * 
+ * <h4>Initialize AppConfig</h4>
+ * 
+ * <p><br/></p>
+ * 
+ * <pre><code>  AppConfig appConfig = new AppConfig();
+ *   appConfig.setApplicationPropertiesPackageName(&quot;your base package name&quot;);
+ *   appConfig.setExternalConfigurationDirectory(&quot;configuration directory name&quot;);
+ *   appConfig.configure();
  * </code></pre>
  * 
- * <h3>And access the configuration settings</h3>
+ * <h4>Configurations load sequence</h4>
  * 
- *  <pre><code>
- *  CombinedConfiguration combinedConfiguration  = AppConfig.sGetCombinedConfiguration();
- *
- *  //See Apache Commons Configuration API docs for more information http://commons.apache.org/configuration/apidocs/index.html
- *  String configurationValue = combinedConfiguration.getString(&quot;some property name&quot;); 
- * </code></pre>
+ * <p>The following files will be automatically loaded in the order shown. 
+ * <br/></p>
  * 
- * <h3>Results</h3>
- * 
- * <p>The following files will be loaded in the order shown. </p>
- * 
- * <pre><code>
- *   application-development.properties (optional)
+ * <pre><code>  application-development.properties (optional)
  *   database-development.properties (optional)
  *   log4j-development.properties (optional)
- *   application-defaults.properties
- *   log4j-defaults.properties
+ *   application-defaults.properties 
+ *   database-defaults.properties
+ *   log4j-defaults.properties (optional)
  * </code></pre>
  * 
  * <p>For each file, the search order is the following:</p>
@@ -106,80 +133,132 @@ import org.slf4j.LoggerFactory;
  * <li>any jars in the system classpath</li>
  * </ul>
  * 
- * <p>In general, if a file is shown, it must be present in one of the locations or an exception will be thrown. &#39;Optional&#39; indicates that the file can be absent.</p>
+ * <p>Following the Apache Commons Configuration convention, if the same key found in multiple files, the value from the first file found and loaded wins. So, in this case, &#39;development&#39; trumps &#39;defsults&#39; - just the desired behavior.</p>
  * 
- * <h2>The details</h2>
+ * <p>In general, if a file is shown, it must be present in one of the locations or an exception will be thrown. It may be empty. &#39;Optional&#39; indicates that the file can be absent. </p>
  * 
- * <p>AppConfig is designed to provide painless multi-environment, external and internal configuration with default settings for components and programs.</p>
+ * <h3>And configuration settings are available</h3>
  * 
- * <p>AppConfig automatically names, finds and loads environment-specific and default application, logging (log4j) and database configuration files. </p>
+ * <p><br/></p>
  * 
- * <p>Where referenced, [environment] is one of:</p>
+ * <pre><code>CombinedConfiguration configuration = appConfig.getCombinedConfiguration();
  * 
- * <ul>
- * <li>development (default)</li>
- * <li>production</li>
- * <li>test</li>
- * <li>(defaults)</li>
- * </ul>
+ * // See Apache Commons Configuration API docs for more information 
+ * // http://commons.apache.org/configuration/apidocs/index.html
+ * String configurationValue = combinedConfiguration.getString(&quot;some property name&quot;); 
+ * </code></pre>
  * 
- * <p>The search order is as described above. For each file, the following locations are searched in order:</p>
+ * <h2>Advanced information</h2>
  * 
- * <ul>
- * <li>the configuration directory (if defined)</li>
- * <li>the user directory</li>
- * <li>any jars in the classpath</li>
- * <li>any jars in the system classpath</li>
- * </ul>
+ * <h3>Error handling</h3>
  * 
- * <p>The following files are managed:</p>
+ * <p>Application or component configuration normally happens at point where the artifact starts. It&#39;s also usually the case that a problem with the configuration is serious if not fatal.</p>
+ * 
+ * <p>That assumption led to two simple decisions. </p>
  * 
  * <ul>
- * <li>application-[environment].properties (optional)</li>
- * <li>application_defaults.properties</li>
- * <li>database-[environment].properties (optional)</li>
- * <li>log4j-[environment].properties (optional)</li>
- * <li>log4j-defaults.properties </li>
+ * <li>If AppConfig encounters a problem when configuring the artifact, it will log the problem and throw an exception.</li>
+ * <li>All exceptions are wrapped with AppConfigException - <strong>an unchecked, Runtime exception</strong>.</li>
  * </ul>
  * 
- * <p>In general, if a file is shown, it must be present in one of the locations or an exception will be thrown. &#39;Optional&#39; indicates that the file can be absent.</p>
- * 
- * <p>The precendence of the files follows the Apache Commons Configuration convention. The environment-specific files are loaded first, followed by the defaults. This ensures that the environment-specific settings override the defaults. </p>
- * 
- * <p>Note that no &#39;database-defaults.properties&#39; are currently supported. So, if database information is required, it must be supplied in an environment-specific file. The best practice here is to manage the database settings, credentials in particular, externally to the component or program.</p>
+ * <p>So, a try/catch is needed around the AppConfig initialization (shown above) if the code wants to detect configuration errors and exit gracefully.</p>
  * 
  * <h3>Overriding default behaviors</h3>
  * 
- * <p>Most AppConfig internal behavior can be overriden with appropriate feature switches. </p>
+ * <p>Most AppConfig internal behaviors can be overriden with appropriate feature switches. </p>
  * 
- * <p>The value of a particular feature switch is determined hierarchically, with the first value found for a particular setting being used. The search order in which the switch settings are examined is:</p>
+ * <p>The value of a particular feature switch is determined hierarchically, with the first value found for a particular setting being used. The searcn order in which the switch settings are examined is:</p>
  * 
  * <ul>
- * <li>Internal, programmatically defined options. Specified when initializing AppConfig as AppConfig.sConfigure(options);</li>
- * <li>Command-line options (specified using JVM &#39;-D[setting name]=[setting value]&#39; syntax)</li>
- * <li>Environment settings (specified using &#39;export [setting name]=[setting value]&#39; syntax or equivalent)</li>
- * <li>Internal default value</li>
+ * <li>Internal, programmatically defined options
+ * 
+ * <ul>
+ * <li>Specified when initializing AppConfig using the &#39;appConfig.setOptions(..)&#39; syntax</li>
+ * </ul></li>
+ * <li>Command-line options
+ * 
+ * <ul>
+ * <li>Specified using JVM &#39;-D[setting name]=[setting value]&#39; syntax</li>
+ * </ul></li>
+ * <li>Environment settings
+ * 
+ * <ul>
+ * <li>Specified using &#39;export [setting name]=[setting value]&#39; syntax or equivalent</li>
+ * </ul></li>
+ * <li>Internal default value
+ * 
+ * <ul>
+ * <li>Default internal settings are managed as property files so property File syntax applies</li>
+ * </ul></li>
  * </ul>
  * 
- * <p>The setting name is the same in all cases.</p>
+ * <p><strong>The setting name is the same in all cases.</strong></p>
  * 
  * <p>The following internal settings are available:</p>
  * 
- * <ul>
- * <li>&#39;com.verymuchme.appconfig.consoleLog&#39; - Enable/disable bootstrap console logging</li>
- * <li>&#39;com.verymuchme.appconfig.systemPropertiesOverride&#39; - enable/disable the ability for system properties to override others</li>
- * <li>&#39;com.verymuchme.appconfig.runTimeEnvironment&#39; - If specified, one of &#39;development&#39;,&#39;production&#39;,&#39;test&#39;. Defaults to &#39;development&#39;</li>
- * <li>&#39;com.verymuchme.appconfig.systemPropertiesOverride&#39; - enable/disable the ability for system properties to override others</li>
- * <li>&#39;com.verymuchme.appconfig.runTimeEnvironment&#39; - If specified, one of &#39;development&#39;,&#39;production&#39;,&#39;test&#39;. Defaults to &#39;development&#39;</li>
- * <li>&#39;com.verymuchme.appconfig.externalConfigurationDirectory&#39; - If specified, defines the external directory location for configuration files specific to particular run-time environments</li>
- * <li>&#39;com.verymuchme.appconfig.applicationConfigurationPrefix&#39; - If specified, defines the prefix for application configuration property files. Defaults to &#39;application&#39;</li>
- * <li>&#39;com.verymuchme.appconfig.databaseConfigurationPrefix&#39; - If specified, defines the prefix for database configuration property files. Defaults to &#39;database&#39;</li>
- * <li>&#39;com.verymuchme.appconfig.log4jConfigurationPrefix&#39; - If specified, defines the prefix for log4j configuration property files. Defaults to &#39;log4j&#39;</li>
- * <li>&#39;com.verymuchme.appconfig.configurationNameSuffix&#39; - If specified, defines the suffix for configuration property files. Defaults to &#39;properties&#39;</li>
- * <li>&#39;com.verymuchme.appconfig.defaultConfigurationName&#39; - If specified, defines the prefix for default configuration property files. Defaults to &#39;defaults&#39;</li>
- * <li>&#39;com.verymuchme.appconfig.database.defaultConfigurationEnabled&#39; - If set to true, a default database configuration file (&#39;database-defaults.properties&#39;) must be present. Defaults to &#39;false&#39;</li>
- * <li>&#39;com.verymuchme.appconfig.log4j.defaultConfigurationEnabled&#39; - If set to true, a default log4j configuration file (&#39;log4j-defaults.properties&#39;) must be present. Defaults to &#39;true&#39;</li>
- * </ul>
+ * <pre><code># 
+ * # Internal defaults for all settings that can be overridden
+ * #
+ * # Property values are specified with a slightly extended property syntax
+ * # 
+ * # &quot;true&quot; / &quot;false&quot; are recognized as boolean values
+ * # &quot;null&quot; is recognized as the null value
+ * # a comma delimited list of values is recognized as an array of string values
+ * # 
+ * 
+ * # File name for internal default properties
+ * com.verymuchme.appconfig.internalDefaultPropertiesFileName = null
+ * 
+ * # Include the Apache Commons Configuration definition file to include the &quot;&lt;system/&gt;&quot; element as the first definition
+ * com.verymuchme.appconfig.systemPropertiesOverride = false
+ * 
+ * # Allowed run time environment names
+ * com.verymuchme.appconfig.permittedRunTimeEnvironments = development,production,test
+ * # Current run time environment name
+ * com.verymuchme.appconfig.runTimeEnvironment = development
+ * # Default run time environment name
+ * com.verymuchme.appconfig.defaultRunTimeEnvironment = development
+ * 
+ * # External configuration directory
+ * com.verymuchme.appconfig.externalConfigurationDirectory = null
+ * 
+ * # Default prefix for application configuration files
+ * com.verymuchme.appconfig.applicationConfigurationPrefix = application
+ * 
+ * # Default prefix for database configuration files
+ * com.verymuchme.appconfig.database.ConfigurationPrefix = database
+ * # Require a default database configuration file
+ * com.verymuchme.appconfig.database.defaultConfigurationEnabled = true
+ * 
+ * # Default prefix for a log4j configuration file
+ * com.verymuchme.appconfig.log4j.ConfigurationPrefix = log4j
+ * # Require a default log4j configuration file
+ * com.verymuchme.appconfig.log4j.defaultConfigurationEnabled = true
+ * 
+ * # Default suffix for all configuration files
+ * com.verymuchme.appconfig.configurationNameSuffix = properties
+ * 
+ * # Default prefix for default configuration files
+ * com.verymuchme.appconfig.defaultConfigurationName = defaults
+ * 
+ * # Default name for Freemarker configuration template
+ * com.verymuchme.appconfig.configurationTemplateName = configuration-xml.ftl
+ * 
+ * # Base class for Freemarker to use to find template
+ * com.verymuchme.appconfig.freemarker.baseClassName = null
+ * 
+ * # Default AppConfig logging level at startup
+ * com.verymuchme.appconfig.log4j.logLevel = ERROR
+ * 
+ * # Name of AppConfig internal log4j configuration file
+ * com.verymuchme.appconfig.log4j.internalConfigurationFileName = log4j-internal-logger.properties
+ * 
+ * # Default value of application properties package name
+ * application.propertiesPackageName = null
+ * 
+ * # Default value of application properties package directory
+ * application.propertiesPackageDir = null
+ * </code></pre>
  * 
  * <h2>Maven dependency information</h2>
  * 
@@ -196,8 +275,8 @@ import org.slf4j.LoggerFactory;
  * &lt;dependency&gt;
  *   &lt;groupId&gt;com.verymuchme.appconfig&lt;/groupId&gt;
  *   &lt;artifactId&gt;app_config&lt;/artifactId&gt;
- *   &lt;version&gt;1.1&lt;/version&gt;
- *  &lt;/dependency&gt;
+ *   &lt;version&gt;2.0&lt;/version&gt;
+ * &lt;/dependency&gt;
  * </code></pre>
  * 
  * @author Tracy Flynn
@@ -226,6 +305,12 @@ public class AppConfig {
    */
   private String applicationPropertiesPackageName = null;
   
+  /*
+   * External directory for configuration
+   */
+  private String externalConfigurationDirectory = null;
+  
+
   /**
    * Create a new AppConfig instance
    */
@@ -243,6 +328,7 @@ public class AppConfig {
     
     // Get the configuration definition
     this.configurationOptions.put(ConfigurationDefinitionBuilder.APPLICATION_PROPERTIES_PACKAGE_NAME_PROPERTY_NAME, this.applicationPropertiesPackageName);
+    this.configurationOptions.put(ConfigurationDefinitionBuilder.EXTERNAL_CONFIGURATION_DIRECTORY_PROPERTY_NAME,this.externalConfigurationDirectory);
     ConfigurationDefinitionBuilder configurationBuilder = new ConfigurationDefinitionBuilder(this.configurationOptions);
     if (logger.isTraceEnabled()) {
       logger.trace(String.format("AppConfig.configure Run time options passed to ConfigurationDefinitionBuilder"));
@@ -331,5 +417,22 @@ public class AppConfig {
      this.applicationPropertiesPackageName = applicationPropertiesPackageName;
    }
 
+   /**
+    * Get the external configuration directory
+    * 
+    * @return External configuration directory
+    */
+   public String getExternalConfigurationDirectory() {
+     return externalConfigurationDirectory;
+   }
+
+   /**
+    * Set the external configuration directory
+    * 
+    * @param externalConfigurationDirectory
+    */
+   public void setExternalConfigurationDirectory(String externalConfigurationDirectory) {
+     this.externalConfigurationDirectory = externalConfigurationDirectory;
+   }
    
 }
