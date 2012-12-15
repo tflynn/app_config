@@ -156,6 +156,52 @@ import org.slf4j.LoggerFactory;
  * String configurationValue = combinedConfiguration.getString(&quot;some property name&quot;); 
  * </code></pre>
  * 
+ * <h3>Logging</h3>
+ * 
+ * <p>The logging configuration support assumes that the back-end logging can be configured using Log4j V1 (1.2.14) syntax.  If you use the Slf4j logging front-end, that will be true.</p>
+ * 
+ * <p>In code, all you need is something similar to:</p>
+ * 
+ * <pre><code>import org.slf4j.Logger;
+ * import org.slf4j.LoggerFactory;
+ * â€¦
+ * public class SomeClass {
+ *   â€¦
+ *   private static final Logger logger = LoggerFactory.getLogger(SomeClass.class);
+ *   â€¦
+ *   public void someMethod() {
+ *     â€¦
+ *     logger.debug(&quot;Some significant message&quot;);
+ *     â€¦
+ *   }
+ *   â€¦
+ * }
+ * </code></pre>
+ * 
+ * <p>And in the POM file - or equivalend dependency management</p>
+ * 
+ * <pre><code>&lt;dependency&gt;
+ *   &lt;groupId&gt;org.slf4j&lt;/groupId&gt;
+ *   &lt;artifactId&gt;jcl-over-slf4j&lt;/artifactId&gt;
+ *   &lt;version&gt;1.5.8&lt;/version&gt;
+ * &lt;/dependency&gt;
+ * &lt;dependency&gt;
+ *   &lt;groupId&gt;org.slf4j&lt;/groupId&gt;
+ *   &lt;artifactId&gt;slf4j-api&lt;/artifactId&gt;
+ *   &lt;version&gt;1.5.8&lt;/version&gt;
+ * &lt;/dependency&gt;
+ * &lt;dependency&gt;
+ *   &lt;groupId&gt;org.slf4j&lt;/groupId&gt;
+ *   &lt;artifactId&gt;slf4j-log4j12&lt;/artifactId&gt;
+ *   &lt;version&gt;1.5.8&lt;/version&gt;
+ * &lt;/dependency&gt;
+ * &lt;dependency&gt;
+ *   &lt;groupId&gt;log4j&lt;/groupId&gt;
+ *   &lt;artifactId&gt;log4j&lt;/artifactId&gt;
+ *   &lt;version&gt;1.2.14&lt;/version&gt;
+ * &lt;/dependency&gt;
+ * </code></pre>
+ * 
  * <h2>Advanced information</h2>
  * 
  * <h3>Error handling</h3>
@@ -267,6 +313,16 @@ import org.slf4j.LoggerFactory;
  * # Default value of application properties package directory
  * application.propertiesPackageDir = null
  * </code></pre>
+ * 
+ * <h4>Changing the configuration template</h4>
+ * 
+ * <p>Apache Commons Configuration uses the concept of a configuration definition file. At its heart, all AppConfig is doing is generating a customized configuration definition file and passing it to Apache Commons Configuration to load.</p>
+ * 
+ * <p>If the default template in AppConfig isn&#39;t suitable, it can be changed by setting the internal setting &#39;com.verymuchme.appconfig.configurationTemplateName&#39; to point to another template. The template is a Freemarker template. Have a look at the AppConfig source before making a change to see what settings are passed to the template.</p>
+ * 
+ * <h3>AppConfig Source</h3>
+ * 
+ * <p>The AppConfig source is managed at https://github.com/tflynn/app_config.</p>
  * 
  * <h2>Maven dependency information</h2>
  * 

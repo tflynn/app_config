@@ -120,6 +120,50 @@ In general, if a file is shown, it must be present in one of the locations or an
     // See Apache Commons Configuration API docs for more information 
     // http://commons.apache.org/configuration/apidocs/index.html
     String configurationValue = combinedConfiguration.getString("some property name"); 
+    
+### Logging
+
+The logging configuration support assumes that the back-end logging can be configured using Log4j V1 (1.2.14) syntax.  If you use the Slf4j logging front-end, that will be true.
+
+In code, all you need is something similar to:
+
+    import org.slf4j.Logger;
+    import org.slf4j.LoggerFactory;
+    …
+    public class SomeClass {
+      …
+      private static final Logger logger = LoggerFactory.getLogger(SomeClass.class);
+      …
+      public void someMethod() {
+        …
+        logger.debug("Some significant message");
+        …
+      }
+      …
+    }
+    
+And in the POM file - or equivalend dependency management
+
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>jcl-over-slf4j</artifactId>
+      <version>1.5.8</version>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>1.5.8</version>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-log4j12</artifactId>
+      <version>1.5.8</version>
+    </dependency>
+    <dependency>
+      <groupId>log4j</groupId>
+      <artifactId>log4j</artifactId>
+      <version>1.2.14</version>
+    </dependency>
 
 ## Advanced information
 
@@ -216,6 +260,19 @@ The following internal settings are available:
     
     # Default value of application properties package directory
     application.propertiesPackageDir = null
+
+#### Changing the configuration template
+
+Apache Commons Configuration uses the concept of a configuration definition file. At its heart, all AppConfig is doing is generating a customized configuration definition file and passing it to Apache Commons Configuration to load.
+
+If the default template in AppConfig isn't suitable, it can be changed by setting the internal setting 'com.verymuchme.appconfig.configurationTemplateName' to point to another template. The template is a Freemarker template. Have a look at the AppConfig source before making a change to see what settings are passed to the template.
+
+
+### AppConfig Source
+
+The AppConfig source is managed at https://github.com/tflynn/app_config.
+
+
 
 ## Maven dependency information
 
