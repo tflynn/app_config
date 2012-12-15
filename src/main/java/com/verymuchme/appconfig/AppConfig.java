@@ -322,21 +322,20 @@ public class AppConfig {
    */
   public void configure() {
     
-    // Configure logging using internal defaults - Console, DEBUG level
-    Log4jHelper.loadInitialInternalLogger();
+    // Configure logging using internal defaults. Allow override for initial logging level from configuration options
+    String logLevelOverride = this.configurationOptions.get(ConfigurationDefinitionBuilder.DEFAULT_LOGGING_LEVEL_PROPERTY_NAME);
+    Log4jHelper.loadInitialInternalLogger(logLevelOverride);
     logger.trace(String.format("AppConfig.configure Added initial internal logger"));
     
+    
     // Get the configuration definition
+    // Make sure to pass the values from the convenience accessors 
     this.configurationOptions.put(ConfigurationDefinitionBuilder.APPLICATION_PROPERTIES_PACKAGE_NAME_PROPERTY_NAME, this.applicationPropertiesPackageName);
     this.configurationOptions.put(ConfigurationDefinitionBuilder.EXTERNAL_CONFIGURATION_DIRECTORY_PROPERTY_NAME,this.externalConfigurationDirectory);
     ConfigurationDefinitionBuilder configurationBuilder = new ConfigurationDefinitionBuilder(this.configurationOptions);
     if (logger.isTraceEnabled()) {
-      logger.trace(String.format("AppConfig.configure Run time options passed to ConfigurationDefinitionBuilder"));
-      Iterator<String> it = this.configurationOptions.keySet().iterator();
-      while (it.hasNext()) {
-        String currentKey = it.next();
-        logger.trace(String.format("%s=%s",currentKey,this.configurationOptions.get(currentKey)));
-      }
+      logger.trace(String.format("AppConfig.configure runtime options passed to ConfigurationDefinitionBuilder"));
+      AppConfigUtils.dumpMap(this.configurationOptions);
     }
     
     
@@ -351,10 +350,9 @@ public class AppConfig {
 
     logger.trace(String.format("AppConfig.configure Generated configuration definitions"));
     
-    // Configure log4j first - deals with logging configuration in dependent packages
+    // Configure application-level logging
     List<String> log4jConfigNames = configurationBuilder.generateLog4jConfigurationNames();
-    configurationBuilder.loadLog4jConfiguration(log4jConfigNames);
-
+    Log4jHelper.loadLog4jConfiguration(log4jConfigNames, logger);
     logger.trace(String.format("AppConfig.configure loaded application logging"));
 
     // Load the configuration definition

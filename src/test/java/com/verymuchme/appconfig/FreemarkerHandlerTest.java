@@ -29,36 +29,45 @@ import org.jmock.integration.junit4.JUnit4Mockery;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.apache.commons.configuration.DefaultConfigurationBuilder;
 
 @RunWith(JMock.class)
 public class FreemarkerHandlerTest {
 
+  private static final Logger logger = LoggerFactory.getLogger(FreemarkerHandlerTest.class);
+
   Mockery context = new JUnit4Mockery();
   
   @Before
   public void silenceLoggers() {
-    List<String> quietList = Arrays.asList("freemarker","com.verymuchme.appconfig");
-    Log4jHelper.silencePackages(quietList);
+    Log4jHelper.silencePackage("freemarker");
+    Log4jHelper.loadInitialInternalLogger("TRACE");
   }
   
   @Test
   public void testDefaultTemplateLoad() throws Exception {
     
+    logger.trace("AppConfig.FreemarkerHandlerTest.testDefaultTemplateLoad starting");
+    
     String testTemplateName = "test-configuration-xml.ftl";
     
-    String expectedTemplateContents = "<?xml version=\"1.0\" encoding=\"ISO-8859-1\" ?>" + "\n" 
+    String expectedTemplateContents = "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>" + "\n" 
                                       + "\n"
                                       + "<configuration>" + "\n"
                                       + "   <properties fileName=\"application.properties\"/>" + "\n"
                                       + "</configuration>" + "\n";
 
-    FreemarkerHandler freemarkerHandler = new FreemarkerHandler();
+    FreemarkerHandler freemarkerHandler = new FreemarkerHandler(FreemarkerHandlerTest.class);
     HashMap<String,String> data = new HashMap<String,String>();
     String templateContents = freemarkerHandler.getTemplate(testTemplateName,null);
-    assertTrue(templateContents.equals(expectedTemplateContents));
-    
+    boolean success = templateContents.equals(expectedTemplateContents); 
+    assertTrue("The loaded template should match the default contents",success);
+    if (logger.isTraceEnabled()) {
+      logger.trace(String.format("AppConfig.FreemarkerHandlerTest.testDefaultTemplateLoad finished and %s", success ? "passed" : "failed"));
+    }
   }
   
 }

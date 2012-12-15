@@ -14,13 +14,16 @@
  */
 package com.verymuchme.appconfig;
 
+import java.io.File;
 import java.io.InputStream;
+import java.net.URL;
 import java.util.List;
 import java.util.Properties;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
+
 import org.slf4j.LoggerFactory;
 
 /**
@@ -79,7 +82,7 @@ public class Log4jHelper {
       props.setProperty(String.format("%s.%s.layout.ConversionPattern",baseAppenderName,DEFAULT_APPENDER_NAME),DEFAULT_LAYOUT_PATTERN);
       String baseLoggerName = String.format("log4j.logger.%s",packageName);
       props.setProperty(baseLoggerName,String.format("%s, %s.%s",errorLevel,packageName,DEFAULT_APPENDER_NAME));
-      props.list(System.out);
+      AppConfigUtils.dumpMap(props);
       PropertyConfigurator.configure(props);
     }
     catch (Exception e) {
@@ -96,34 +99,48 @@ public class Log4jHelper {
    * Load the initial internal logger 
    */
   public static void loadInitialInternalLogger(){
-    String internalPackageName = Log4jHelper.class.getPackage().getName();
-    String loggingLevelPropName = ConfigurationDefinitionBuilder.DEFAULT_LOGGING_LEVEL_PROPERTY_NAME;
-    String overrideValue = getDefaultedInternalLoggingLevel(true);
-    loadLogger(internalPackageName,overrideValue);
+    loadInitialInternalLogger(DEFAULT_INTERNAL_LOG_LEVEL);
   }
 
   /**
-   * Load the 'real' internal logging settings
+   * Load the initial internal logger 
    * 
-   * @param internalProperties
+   * @param log4jLevel Logging level as Log4j Level as a string
+   */
+  public static void loadInitialInternalLogger(String log4jLevel){
+    if (log4jLevel == null) {
+      log4jLevel = DEFAULT_INTERNAL_LOG_LEVEL;
+    }
+    String internalPackageName = Log4jHelper.class.getPackage().getName();
+    loadLogger(internalPackageName,log4jLevel);
+  }
+  
+  /**
+   * Load the 'real' internal logging settings from a properties file
+   * 
+   * @param internalProperties Internal settings
    */
   public static void loadInternalLogger(ExtendedProperties internalProperties) {
     try {
+
+      // Configure the internal logger from the internal properties file
       Properties internalLoggingProps = new Properties();
       String internalLoggingPropertiesFileName = internalProperties.getProperty(ConfigurationDefinitionBuilder.INTERNAL_LOG4J_CONFIGURATION_FILE_PROPERTY_NAME);
       InputStream internalLoggingPropertiesInputStream = Log4jHelper.class.getResourceAsStream(internalLoggingPropertiesFileName);
       internalLoggingProps.load(internalLoggingPropertiesInputStream);
       internalLoggingPropertiesInputStream.close();
+      // PropertyConfigurator.configure causes the actual logger configuration
       PropertyConfigurator.configure(internalLoggingProps);
       
+      // Allow a logging level override for the internal logger 
       String internalPackageName = Log4jHelper.class.getPackage().getName();
       Logger internalLogger = Logger.getLogger(internalPackageName);
-      String internalLoggerLevelString = getDefaultedInternalLoggingLevel(false);
-      if (internalLoggerLevelString != null) {
-        Level internalLoggerLevel = Level.toLevel(internalLoggerLevelString);
-        internalLogger.setLevel(internalLoggerLevel);
-      }
-      internalLogger.trace("AppConfig.Log4jHelper.loadInternalLogger loaded internal logger");
+      String internalLoggerLevelString = getDefaultedInternalLoggingLevel(internalProperties);
+      Level internalLoggerLevel = Level.toLevel(internalLoggerLevelString);
+      internalLogger.setLevel(internalLoggerLevel);
+      
+      if (internalLogger.isTraceEnabled())
+        internalLogger.trace(String.format("AppConfig.Log4jHelper.loadInternalLogger loaded internal logger settings from properties file and overrode logging level to %s",internalLoggerLevelString));
     }
     catch (Exception e) {
       // Should be one of the only places where the console gets written to directly - since there is no configured logging at this point
@@ -135,25 +152,84 @@ public class Log4jHelper {
     }
   }
   
+  /**
+   * Load log4j configuration from a configuration file. For a given name, load only the first file in the list that is found
+   * 
+   * @param configNames List of possible configuration file names
+   * @param loggerContext logger context in which to log loading messages
+   * @return true if configuration found and loaded, false otherwise
+   */
+  public static boolean loadLog4jConfiguration(List<String> configNames, org.slf4j.Logger loggerContext) {
+
+    boolean configFileFound = false;
+
+    try {
+      String configFileLoaded = null;
+      String loadingMethod = null;
+      
+      for (String configName : configNames) {
+        File configFile = new File(configName);
+        if (configFile.isAbsolute() && configFile.exists()) {
+          PropertyConfigurator.configure(configName);
+          configFileFound = true;
+          configFileLoaded = configName;
+          loadingMethod = "absolute";
+          break;
+        }
+        ClassLoader loader = Thread.currentThread().getContextClassLoader();
+        URL url = loader.getResource(configName);
+        if (url != null) {
+          PropertyConfigurator.configure(url);
+          configFileFound = true;
+          configFileLoaded = configName;
+          loadingMethod = "classpath";
+          break;
+        }
+        URL systemUrl = ClassLoader.getSystemResource(configName);
+        if (systemUrl != null) {
+          PropertyConfigurator.configure(url);
+          configFileFound = true;
+          configFileLoaded = configName;
+          loadingMethod = "system classpath";
+          break;
+        }
+      }
+      
+      if (configFileFound) {
+        loggerContext.trace(String.format("AppConfig.loadLog4jConfiguration loaded configuration %s using %s",configFileLoaded, loadingMethod));
+      }
+      else {
+        loggerContext.trace(String.format("AppConfig.loadLog4jConfiguration failed to load any configuration"));
+      }
+    }
+    catch (Exception e) {
+      String errorMessage = "AppConfig.ConfigurationDefinitionBuilder.oadLog4jConfiguration failed to load application logging configuration";
+      loggerContext.error(errorMessage,e);
+      throw new AppConfigException(errorMessage,e);
+    }
+    return configFileFound;
+  }
+
+  
   /*
    * Get the defaulted internal logging level
    * 
    * @return Log4j level as a string
    */
-  private static String getDefaultedInternalLoggingLevel(boolean includeDefault) {
+  private static String getDefaultedInternalLoggingLevel(ExtendedProperties internalProperties) {
     
     String loggingLevelPropName = ConfigurationDefinitionBuilder.DEFAULT_LOGGING_LEVEL_PROPERTY_NAME;
     
-    // Allow override for logging level only from command-line and command-line (first one wins)
     String overrideValue = null;
-    overrideValue = System.getProperty(loggingLevelPropName);
+    overrideValue = internalProperties.getNullProperty(loggingLevelPropName);
+    if (overrideValue == null) {
+      overrideValue = System.getProperty(loggingLevelPropName);
+    }
     if (overrideValue == null) {
       overrideValue = System.getenv(loggingLevelPropName);
     }
-    if (includeDefault) {
-      if (overrideValue == null) {
-        overrideValue = DEFAULT_INTERNAL_LOG_LEVEL;
-      }
+    if (overrideValue == null) {
+      overrideValue = DEFAULT_INTERNAL_LOG_LEVEL;
     }
     return overrideValue;
     

@@ -55,17 +55,20 @@ public class AppConfigTest {
   @Before
   public void silenceLoggers() {
     Log4jHelper.silencePackage("freemarker");
-    Log4jHelper.loadInitialInternalLogger();
+    Log4jHelper.loadInitialInternalLogger("TRACE");
     configurationOptions = new HashMap<String,String>();
     configurationOptions.put(ConfigurationDefinitionBuilder.RUN_TIME_ENVIRONMENT_PROPERTY_NAME,"test");
+    configurationOptions.put(ConfigurationDefinitionBuilder.DEFAULT_LOGGING_LEVEL_PROPERTY_NAME,"TRACE");
   }
   
-  /*
+  
   @Test
   public void testConfigureInternalOnly() {
+    
     //Case 1 optional files present, defaults not present - should generate an error
+    logger.trace("AppConfigTest.testConfigureInternalOnly.case1 starting");
     String packageName1 = "com.verymuchme.appconfig.test.internalOnly.case1";
-    boolean success = true;
+    boolean success = false;
     try {
       AppConfig appConfig = new AppConfig();
       appConfig.setApplicationPropertiesPackageName(packageName1);
@@ -74,11 +77,15 @@ public class AppConfigTest {
     }
     catch (Exception e) {
       logger.debug(String.format("AppConfigTest.testConfigureInternalOnly error testing case 1"),e);
-      success = false;
+      success = true;
     }
-    assertFalse("Optional properties files present, defaults not present, so the property load should fail", success);
-
+    assertTrue("Optional properties files present, defaults not present, so the property load should fail", success);
+    if (logger.isTraceEnabled()) {
+      logger.trace(String.format("AppConfigTest.testConfigureInternalOnly.case1 %s", success ? "passed" : "failed"));
+    }
+    
     //Case 2 optional files present, defaults presents - check overridden values
+    logger.trace("AppConfigTest.testConfigureInternalOnly.case2 starting");
     String packageName2 = "com.verymuchme.appconfig.test.internalOnly.case2";
     success = true;
     try {
@@ -97,13 +104,19 @@ public class AppConfigTest {
       success = false;
     }
     assertTrue(success);
+
+    if (logger.isTraceEnabled()) {
+      logger.trace(String.format("AppConfigTest.testConfigureInternalOnly.case2 %s", success ? "passed" : "failed"));
+    }
     
   }
-  */
+  
   
   @Test
   public void testConfigureExternal() {
-    
+
+    logger.trace("AppConfigTest.testConfigureExternal starting");
+
     String tempDirName = getTemporaryDir();
     File tempDir = new File(tempDirName);
     logger.debug(String.format("AppConfigTest.testConfigureExternal temporary dir is %s and %s",tempDirName, tempDir.exists() ? "exists" : "doesn't exist"));
@@ -120,7 +133,7 @@ public class AppConfigTest {
     try {
       AppConfig appConfig = new AppConfig();
       appConfig.setApplicationPropertiesPackageName(packageName2);
-      this.configurationOptions.put(ConfigurationDefinitionBuilder.EXTERNAL_CONFIGURATION_DIRECTORY_PROPERTY_NAME, tempDirName);
+      appConfig.setExternalConfigurationDirectory(tempDirName);
       appConfig.setOptions(this.configurationOptions);
       appConfig.configure();
       CombinedConfiguration configuration = appConfig.getCombinedConfiguration();
@@ -141,8 +154,11 @@ public class AppConfigTest {
       logger.error("AppConfigTest.testConfigureExternal error during test",e);
       success = false;
     }
-    assertTrue(success);
-  
+    
+    assertTrue("Internal defaults and optional files and external files present. Configuration values overridden correctly",success);
+    if (logger.isTraceEnabled()) {
+      logger.trace(String.format("AppConfigTest.testConfigureExternal finished and %s", success ? "passed" : "failed"));
+    }
     
     
   }

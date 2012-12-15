@@ -44,8 +44,6 @@ import org.slf4j.LoggerFactory;
  */
 public class ConfigurationDefinitionBuilder {
 
-  private static final Logger logger = LoggerFactory.getLogger(ConfigurationDefinitionBuilder.class);
-  
   private static final String INTERNAL_DEFAULTS_PROPERTY_FILE_NAME_PROPERTY_NAME = "com.verymuchme.appconfig.internalDefaultPropertiesFileName";
   private static final String INTERNAL_DEFAULTS_PROPERTY_FILE_NAME = "internal-defaults.properties";
   
@@ -76,6 +74,11 @@ public class ConfigurationDefinitionBuilder {
   
   public static final String DEFAULT_LOGGING_LEVEL_PROPERTY_NAME = "com.verymuchme.appconfig.log4j.logLevel";
   public static final String INTERNAL_LOG4J_CONFIGURATION_FILE_PROPERTY_NAME = "com.verymuchme.appconfig.log4j.internalConfigurationFileName";
+  
+  /*
+   * Logger instance for this class
+   */
+  private static final Logger logger = LoggerFactory.getLogger(ConfigurationDefinitionBuilder.class);
   
   /*
    * Configuration options
@@ -152,6 +155,7 @@ public class ConfigurationDefinitionBuilder {
           if (overrideValue != null) {
             this.internalProperties.put(propertyName, overrideValue);
           }
+          
         }
         
         // Check for an override to the internal properties file name. If present, reload everything
@@ -187,7 +191,7 @@ public class ConfigurationDefinitionBuilder {
 
     if (logger.isTraceEnabled()) {
       logger.trace(String.format("ConfigurationDefinitionBuilder.setInternalProperties internalProperties settings"));
-      this.internalProperties.list(System.out);
+      AppConfigUtils.dumpMap(this.internalProperties);
     }
 
   } 
@@ -250,63 +254,6 @@ public class ConfigurationDefinitionBuilder {
   }
 
   /**
-   * Load log4j configuration - first file in the list that exists is loaded
-   * 
-   * @param configNames List of possible config file names
-   * @return true if configuration found and loaded, false otherwise
-   */
-  public boolean loadLog4jConfiguration(List<String> configNames) {
-
-    boolean configFileFound = false;
-
-    try {
-      String configFileLoaded = null;
-      String loadingMethod = null;
-      
-      for (String configName : configNames) {
-        File configFile = new File(configName);
-        if (configFile.isAbsolute() && configFile.exists()) {
-          PropertyConfigurator.configure(configName);
-          configFileFound = true;
-          configFileLoaded = configName;
-          loadingMethod = "absolute";
-          break;
-        }
-        ClassLoader loader = Thread.currentThread().getContextClassLoader();
-        URL url = loader.getResource(configName);
-        if (url != null) {
-          PropertyConfigurator.configure(url);
-          configFileFound = true;
-          configFileLoaded = configName;
-          loadingMethod = "classpath";
-          break;
-        }
-        URL systemUrl = ClassLoader.getSystemResource(configName);
-        if (systemUrl != null) {
-          PropertyConfigurator.configure(url);
-          configFileFound = true;
-          configFileLoaded = configName;
-          loadingMethod = "system classpath";
-          break;
-        }
-      }
-      
-      if (configFileFound) {
-        logger.trace(String.format("AppConfig.loadLog4jConfiguration loaded configuration %s using %s",configFileLoaded, loadingMethod));
-      }
-      else {
-        logger.trace(String.format("AppConfig.loadLog4jConfiguration failed to load any configuration"));
-      }
-    }
-    catch (Exception e) {
-      String errorMessage = "AppConfig.ConfigurationDefinitionBuilder.oadLog4jConfiguration failed to load application logging configuration";
-      logger.error(errorMessage,e);
-      throw new AppConfigException(errorMessage,e);
-    }
-    return configFileFound;
-  }
-  
-  /**
    * Load a Configuration Definition file using Apache Commons Configuration DefaultConfigurationBuilder
    * 
    * @param configurationDefinition
@@ -368,7 +315,7 @@ public class ConfigurationDefinitionBuilder {
         boolean systemOverride = this.internalProperties.getBooleanProperty(SYSTEM_PROPERTIES_OVERRIDE_PROPERTY_NAME);
         String systemOverrideString = systemOverride ? "true" : "false";
         String packageDir = this.internalProperties.getProperty(APPLICATION_PROPERTIES_PACKAGE_DIR_PROPERTY_NAME);
-        String externalConfigurationDirectory = this.internalProperties.getProperty(EXTERNAL_CONFIGURATION_DIRECTORY_PROPERTY_NAME);
+        String externalConfigurationDirectory = this.internalProperties.getNullProperty(EXTERNAL_CONFIGURATION_DIRECTORY_PROPERTY_NAME);
         
         HashMap<String,String> templateData = new HashMap<String,String>();
         templateData.put("suffix", suffix);
@@ -378,9 +325,10 @@ public class ConfigurationDefinitionBuilder {
         templateData.put("defaultPropName", defaultPropName);
         templateData.put("systemOverride", systemOverrideString);
         templateData.put("packageDir", packageDir);
-        templateData.put("externalConfigurationDirectory",externalConfigurationDirectory);
+        if (externalConfigurationDirectory != null) {
+          templateData.put("externalConfigurationDirectory",externalConfigurationDirectory);
+        }
   
-        //TODO Error handling, override for template name
         FreemarkerHandler freemarkerHandler = null;
         String freemarkerBaseClassName = this.internalProperties.getNullProperty(FREEMARKER_CONFIGURATION_BASE_CLASS_PROPERTY_NAME);
         if (freemarkerBaseClassName == null) {

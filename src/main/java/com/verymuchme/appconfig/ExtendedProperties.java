@@ -52,8 +52,7 @@ public class ExtendedProperties extends Properties {
    * @return true or false
    */
   public boolean getBooleanProperty(String key) {
-    Boolean returnValue = new Boolean(getProperty(key));
-    return returnValue.booleanValue();
+    return AppConfigUtils.getBooleanValue(getProperty(key));
   }
   
   /**
@@ -65,11 +64,7 @@ public class ExtendedProperties extends Properties {
    * @return the value or null
    */
   public String getNullProperty(String key) {
-    String returnValue = getProperty(key);
-    if (returnValue.equalsIgnoreCase("null")) {
-      returnValue = null;
-    }
-    return returnValue;
+    return AppConfigUtils.getNullValue(getProperty(key));
   }
   
   /**
@@ -92,18 +87,7 @@ public class ExtendedProperties extends Properties {
    * @return Array of string values, or null if no property present
    */
   public ArrayList<String> getListProperty(String key, String separator) {
-    String value = getProperty(key);
-    ArrayList<String> returnList = new ArrayList<String>();
-    if (value != null && separator != null) {
-      String[] propertyValues = value.split(separator);
-      for (int i = 0 ; i < propertyValues.length ; i++) {
-        returnList.add(propertyValues[i]);
-      }
-    }
-    if (returnList.size() == 0) {
-      returnList = null;
-    }
-    return returnList;
+    return AppConfigUtils.getListValue(getProperty(key),separator);
   }
   
 }
