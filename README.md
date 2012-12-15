@@ -11,15 +11,15 @@ AppConfig is designed to provide painless configuration for multiple runtime env
 
 It is particularly targeted at the problem of configuring components and applications 'from the outside' without needing to modify the packaged artifact.
 
+If certain conventions are observed, it can also independently manage configurations for multiple AppConfig-enabled components within a single application.
+
 It is based on Apache Commons Configuration http://commons.apache.org/configuration .
 
 ## Typical usage
 
-
 Suppose the settings for a component or a program that's been built with AppConfig support need to be changed.
 
 ### Create a configuration directory
-<br/>
 
       mkdir ~/local_appconfig
     
@@ -72,7 +72,6 @@ AppConfig is designed to provide painless multi-environment, external and intern
 ### Using AppConfig in code
 
 #### Initialize AppConfig
-<br/>
 
       AppConfig appConfig = new AppConfig();
       appConfig.setApplicationPropertiesPackageName("your base package name");
@@ -80,10 +79,21 @@ AppConfig is designed to provide painless multi-environment, external and intern
       appConfig.configure();
 
 
+##### Where to put configuration files
+
+Configuration files should be stored at the root of your package. 
+
+**Do NOT** place them at the root your source tree. If you do, unpredictable things will happen when you try to load configuations in a project containing multiple AppConfig-enabled components. 
+
+Example:
+
+AppConfig itself is a Maven-based package with a base package of 'com.verymuchme.appconfig'. So, configuration files would be placed in:
+
+    ./src/main/resources/com/verymuchme/appconfig
+
 #### Configurations load sequence
 
 The following files will be automatically loaded in the order shown. 
-<br/>
 
       application-development.properties (optional)
       database-development.properties (optional)
@@ -104,7 +114,6 @@ Following the Apache Commons Configuration convention, if the same key found in 
 In general, if a file is shown, it must be present in one of the locations or an exception will be thrown. It may be empty. 'Optional' indicates that the file can be absent. 
 
 ### And configuration settings are available
-<br/>
 
     CombinedConfiguration configuration = appConfig.getCombinedConfiguration();
     

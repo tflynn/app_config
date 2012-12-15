@@ -36,6 +36,8 @@ import org.slf4j.LoggerFactory;
  * 
  * <p>It is particularly targeted at the problem of configuring components and applications &#39;from the outside&#39; without needing to modify the packaged artifact.</p>
  * 
+ * <p>If certain conventions are observed, it can also independently manage configurations for multiple AppConfig-enabled components within a single application.</p>
+ * 
  * <p>It is based on Apache Commons Configuration http://commons.apache.org/configuration .</p>
  * 
  * <h2>Typical usage</h2>
@@ -43,8 +45,6 @@ import org.slf4j.LoggerFactory;
  * <p>Suppose the settings for a component or a program that&#39;s been built with AppConfig support need to be changed.</p>
  * 
  * <h3>Create a configuration directory</h3>
- * 
- * <p><br/></p>
  * 
  * <pre><code>  mkdir ~/local_appconfig
  * </code></pre>
@@ -103,18 +103,28 @@ import org.slf4j.LoggerFactory;
  * 
  * <h4>Initialize AppConfig</h4>
  * 
- * <p><br/></p>
- * 
  * <pre><code>  AppConfig appConfig = new AppConfig();
  *   appConfig.setApplicationPropertiesPackageName(&quot;your base package name&quot;);
  *   appConfig.setExternalConfigurationDirectory(&quot;configuration directory name&quot;);
  *   appConfig.configure();
  * </code></pre>
  * 
+ * <h5>Where to put configuration files</h5>
+ * 
+ * <p>Configuration files should be stored at the root of your package. </p>
+ * 
+ * <p><strong>Do NOT</strong> place them at the root your source tree. If you do, unpredictable things will happen when you try to load configuations in a project containing multiple AppConfig-enabled components. </p>
+ * 
+ * <p>Example:</p>
+ * 
+ * <p>AppConfig itself is a Maven-based package with a base package of &#39;com.verymuchme.appconfig&#39;. So, configuration files would be placed in:</p>
+ * 
+ * <pre><code>./src/main/resources/com/verymuchme/appconfig
+ * </code></pre>
+ * 
  * <h4>Configurations load sequence</h4>
  * 
- * <p>The following files will be automatically loaded in the order shown. 
- * <br/></p>
+ * <p>The following files will be automatically loaded in the order shown. </p>
  * 
  * <pre><code>  application-development.properties (optional)
  *   database-development.properties (optional)
@@ -138,8 +148,6 @@ import org.slf4j.LoggerFactory;
  * <p>In general, if a file is shown, it must be present in one of the locations or an exception will be thrown. It may be empty. &#39;Optional&#39; indicates that the file can be absent. </p>
  * 
  * <h3>And configuration settings are available</h3>
- * 
- * <p><br/></p>
  * 
  * <pre><code>CombinedConfiguration configuration = appConfig.getCombinedConfiguration();
  * 
