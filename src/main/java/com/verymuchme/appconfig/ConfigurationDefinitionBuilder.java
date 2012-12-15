@@ -368,6 +368,7 @@ public class ConfigurationDefinitionBuilder {
         boolean systemOverride = this.internalProperties.getBooleanProperty(SYSTEM_PROPERTIES_OVERRIDE_PROPERTY_NAME);
         String systemOverrideString = systemOverride ? "true" : "false";
         String packageDir = this.internalProperties.getProperty(APPLICATION_PROPERTIES_PACKAGE_DIR_PROPERTY_NAME);
+        String externalConfigurationDirectory = this.internalProperties.getProperty(EXTERNAL_CONFIGURATION_DIRECTORY_PROPERTY_NAME);
         
         HashMap<String,String> templateData = new HashMap<String,String>();
         templateData.put("suffix", suffix);
@@ -377,6 +378,7 @@ public class ConfigurationDefinitionBuilder {
         templateData.put("defaultPropName", defaultPropName);
         templateData.put("systemOverride", systemOverrideString);
         templateData.put("packageDir", packageDir);
+        templateData.put("externalConfigurationDirectory",externalConfigurationDirectory);
   
         //TODO Error handling, override for template name
         FreemarkerHandler freemarkerHandler = null;
@@ -390,6 +392,10 @@ public class ConfigurationDefinitionBuilder {
         }
         freemarkerHandler.setInternalProperties(this.internalProperties);
         String templateContents = freemarkerHandler.getTemplate(this.internalProperties.getProperty(DEFAULT_FREEMARKER_CONFIGURATION_TEMPLATE_PROPERTY_NAME),templateData);
+        if (logger.isTraceEnabled()) {
+          logger.trace("AppConfig.ConfigurationDefinitionBuilder.generateConfigurationDefinition definition file");
+          logger.trace(templateContents);
+        }
         return templateContents;
       }
       catch (Exception e) {
