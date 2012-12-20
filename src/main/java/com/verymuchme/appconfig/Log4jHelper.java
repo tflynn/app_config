@@ -38,6 +38,8 @@ import org.slf4j.LoggerFactory;
  */
 public class Log4jHelper {
 
+  private static Logger internalLogger = null;
+  
   private static final String DEFAULT_CONSOLE_APPENDER_CLASS = "org.apache.log4j.ConsoleAppender";
   private static final String DEFAULT_LAYOUT_CLASS = "org.apache.log4j.PatternLayout";
   private static final String DEFAULT_LAYOUT_PATTERN = "%d{ISO8601}   [%-5p]    [%t]  %m %n";
@@ -82,7 +84,7 @@ public class Log4jHelper {
       props.setProperty(String.format("%s.%s.layout.ConversionPattern",baseAppenderName,DEFAULT_APPENDER_NAME),DEFAULT_LAYOUT_PATTERN);
       String baseLoggerName = String.format("log4j.logger.%s",packageName);
       props.setProperty(baseLoggerName,String.format("%s, %s.%s",errorLevel,packageName,DEFAULT_APPENDER_NAME));
-      AppConfigUtils.dumpMap(props);
+      AppConfigUtils.dumpMap(props); //TODO needs to be on a switch
       PropertyConfigurator.configure(props);
     }
     catch (Exception e) {
@@ -134,13 +136,13 @@ public class Log4jHelper {
       
       // Allow a logging level override for the internal logger 
       String internalPackageName = Log4jHelper.class.getPackage().getName();
-      Logger internalLogger = Logger.getLogger(internalPackageName);
+      Log4jHelper.internalLogger = Logger.getLogger(internalPackageName);
       String internalLoggerLevelString = getDefaultedInternalLoggingLevel(internalProperties);
       Level internalLoggerLevel = Level.toLevel(internalLoggerLevelString);
-      internalLogger.setLevel(internalLoggerLevel);
+      Log4jHelper.internalLogger.setLevel(internalLoggerLevel);
       
-      if (internalLogger.isTraceEnabled())
-        internalLogger.trace(String.format("AppConfig.Log4jHelper.loadInternalLogger loaded internal logger settings from properties file and overrode logging level to %s",internalLoggerLevelString));
+      if (Log4jHelper.internalLogger.isTraceEnabled())
+        Log4jHelper.internalLogger.trace(String.format("AppConfig.Log4jHelper.loadInternalLogger loaded internal logger settings from properties file and overrode logging level to %s",internalLoggerLevelString));
     }
     catch (Exception e) {
       // Should be one of the only places where the console gets written to directly - since there is no configured logging at this point
@@ -169,6 +171,11 @@ public class Log4jHelper {
       
       for (String configName : configNames) {
         File configFile = new File(configName);
+        Log4jHelper.internalLogger.trace(String.format("AppConfig.Log4jHelper.loadLog4jConfiguration checking for configuration file at location %s. File %s and %s",
+                configName, 
+                configFile.isAbsolute() ? "is absolute" : "is relative", 
+                configFile.exists() ? "exists" : "does not exist"
+            ));
         if (configFile.isAbsolute() && configFile.exists()) {
           PropertyConfigurator.configure(configName);
           configFileFound = true;
@@ -178,6 +185,7 @@ public class Log4jHelper {
         }
         ClassLoader loader = Thread.currentThread().getContextClassLoader();
         URL url = loader.getResource(configName);
+        Log4jHelper.internalLogger.trace(String.format("AppConfig.Log4jHelper.loadLog4jConfiguration checking for configuration file %s using standard classloader. File %s",configName, url == null ? "was not found" : "was found"));
         if (url != null) {
           PropertyConfigurator.configure(url);
           configFileFound = true;
@@ -186,6 +194,7 @@ public class Log4jHelper {
           break;
         }
         URL systemUrl = ClassLoader.getSystemResource(configName);
+        Log4jHelper.internalLogger.trace(String.format("AppConfig.Log4jHelper.loadLog4jConfiguration checking for configuration file %s using system classloader. File %s",configName, systemUrl == null ? "was not found" : "was found"));
         if (systemUrl != null) {
           PropertyConfigurator.configure(url);
           configFileFound = true;

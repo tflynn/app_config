@@ -227,6 +227,7 @@ public class ConfigurationDefinitionBuilder {
    */
   public List<String> generateLog4jConfigurationNames() {
     List<String> configNames = new ArrayList<String>();
+    String packageDir = this.internalProperties.getProperty(APPLICATION_PROPERTIES_PACKAGE_DIR_PROPERTY_NAME);
     String suffix = this.internalProperties.getProperty(CONFIGURATION_NAME_SUFFIX_PROPERTY_NAME);
     String log4jPrefix = this.internalProperties.getProperty(LOG4J_CONFIGURATION_NAME_PREFIX_PROPERTY_NAME);
     String rtEnv = this.internalProperties.getProperty(RUN_TIME_ENVIRONMENT_PROPERTY_NAME);
@@ -237,12 +238,12 @@ public class ConfigurationDefinitionBuilder {
       String extLog4jDef = String.format("%s/%s-%s.%s",confDir,log4jPrefix,rtEnv,suffix);
       configNames.add(extLog4jDef);
     }
-    String log4jDef = String.format("%s-%s.%s",log4jPrefix,rtEnv,suffix);
+    String log4jDef = String.format("%s/%s-%s.%s",packageDir,log4jPrefix,rtEnv,suffix);
     configNames.add(log4jDef);
 
     boolean includeLog4jDefault = this.internalProperties.getBooleanProperty(DEFAULT_LOG4J_CONFIGURATION_ENABLED_PROPERTY_NAME);
     if (includeLog4jDefault) {
-      String log4jDefault = String.format("%s-%s.%s",log4jPrefix,defaultPropName,suffix);
+      String log4jDefault = String.format("%s/%s-%s.%s",packageDir,log4jPrefix,defaultPropName,suffix);
       configNames.add(log4jDefault);
     }
     
