@@ -84,7 +84,7 @@ public class Log4jHelper {
       props.setProperty(String.format("%s.%s.layout.ConversionPattern",baseAppenderName,DEFAULT_APPENDER_NAME),DEFAULT_LAYOUT_PATTERN);
       String baseLoggerName = String.format("log4j.logger.%s",packageName);
       props.setProperty(baseLoggerName,String.format("%s, %s.%s",errorLevel,packageName,DEFAULT_APPENDER_NAME));
-      AppConfigUtils.dumpMap(props); //TODO needs to be on a switch
+      //AppConfigUtils.dumpMap(props);
       PropertyConfigurator.configure(props);
     }
     catch (Exception e) {
