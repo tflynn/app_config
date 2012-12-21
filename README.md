@@ -188,7 +188,7 @@ So, a try/catch is needed around the AppConfig initialization (as shown below) i
        }
        catch (AppConfigException ace) {
        	 try {
-          logger.error("App failed to configure properly. Exiting abnormally",e);
+          logger.error("App failed to configure properly. Exiting abnormally",ace);
           System.exit(1);  // Exit with error code
          }
          catch (Exception ee) {

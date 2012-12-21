@@ -201,7 +201,7 @@ public class SomeClass {
    }
    catch (AppConfigException ace) {
      try {
-      logger.error(&quot;App failed to configure properly. Exiting abnormally&quot;,e);
+      logger.error(&quot;App failed to configure properly. Exiting abnormally&quot;,ace);
       System.exit(1);  // Exit with error code
      }
      catch (Exception ee) {
