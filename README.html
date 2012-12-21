@@ -83,6 +83,8 @@ AppConfig is designed to provide painless multi-environment, external and intern
   appConfig.configure();
 </code></pre>
 
+<p>(See error handling information below)</p>
+
 <h5>Where to put configuration files</h5>
 
 <p>Configuration files should be stored at the root of your package. </p>
@@ -189,7 +191,28 @@ public class SomeClass {
 <li>All exceptions are wrapped with AppConfigException - <strong>an unchecked, Runtime exception</strong>.</li>
 </ul>
 
-<p>So, a try/catch is needed around the AppConfig initialization (shown above) if the code wants to detect configuration errors and exit gracefully.</p>
+<p>So, a try/catch is needed around the AppConfig initialization (as shown below) if the code wants to detect configuration errors and exit gracefully.</p>
+
+<pre><code>  try {
+    AppConfig appConfig = new AppConfig();
+    appConfig.setApplicationPropertiesPackageName(&quot;your base package name&quot;);
+    appConfig.setExternalConfigurationDirectory(&quot;configuration directory name&quot;);
+    appConfig.configure();
+   }
+   catch (AppConfigException ace) {
+     try {
+      logger.error(&quot;App failed to configure properly. Exiting abnormally&quot;,e);
+      System.exit(1);  // Exit with error code
+     }
+     catch (Exception ee) {
+       // Can&#39;t be sure that logging was configured successfully if app configuration failed
+       System.out.println(&quot;App failed to configure properly. Logging apparently not configured. Exiting abnormally&quot;);
+       System.out.println(e.getMessage());
+       e.printStackTrace(System.out);
+       System.exit(2);  // Exit with error code
+     }
+   }
+</code></pre>
 
 <h3>Overriding default behaviors</h3>
 
@@ -288,18 +311,18 @@ application.propertiesPackageName = null
 application.propertiesPackageDir = null
 </code></pre>
 
-<h4>Accessing AppConfig internal settings</h4>
-
-<p>Settings internal to AppConfig itself (the list above) can be accessed from the application configuration object. For instance, to get the current runtime environment:</p>
-
-<pre><code>configuration.getString(&quot;com.verymuchme.appconfig.runTimeEnvironment&quot;);
-</code></pre>
-
 <h4>Changing the configuration template</h4>
 
 <p>Apache Commons Configuration uses the concept of a configuration definition file. At its heart, all AppConfig is doing is generating a customized configuration definition file and passing it to Apache Commons Configuration to load.</p>
 
 <p>If the default template in AppConfig isn&#39;t suitable, it can be changed by setting the internal setting &#39;com.verymuchme.appconfig.configurationTemplateName&#39; to point to another template. The template is a Freemarker template. Have a look at the AppConfig source before making a change to see what settings are passed to the template.</p>
+
+<h3>Accessing AppConfig internal settings</h3>
+
+<p>Settings internal to AppConfig itself (the list above) can be accessed from the application configuration object. For instance, to get the current runtime environment:</p>
+
+<pre><code>configuration.getString(&quot;com.verymuchme.appconfig.runTimeEnvironment&quot;);
+</code></pre>
 
 <h3>AppConfig Source</h3>
 
@@ -320,6 +343,6 @@ application.propertiesPackageDir = null
 &lt;dependency&gt;
   &lt;groupId&gt;com.verymuchme.appconfig&lt;/groupId&gt;
   &lt;artifactId&gt;app_config&lt;/artifactId&gt;
-  &lt;version&gt;2.0&lt;/version&gt;
+  &lt;version&gt;2.3&lt;/version&gt;
 &lt;/dependency&gt;
 </code></pre>
