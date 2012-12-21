@@ -422,6 +422,9 @@ public class AppConfig {
     // Load the configuration definition
     this.combinedConfiguration = configurationBuilder.loadConfigurationDefinition(configurationDefinition);
     
+    // Add internal properties into the application properties
+    configurationBuilder.addInternalProperties(this.combinedConfiguration);
+    
   }
   
   

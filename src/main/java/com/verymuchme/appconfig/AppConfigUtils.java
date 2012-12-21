@@ -32,6 +32,11 @@ import java.util.Set;
  */
 public class AppConfigUtils {
   
+  public static final String DEFAULT_LIST_SEPARATOR = ",";
+  
+  public static final String STRING_VALUE_NULL = "null";
+  
+  
   /**
    * Get a string as a boolean. 
    * Returns the value true if the string argument is not null and is equal, ignoring case, to the string "true". 
@@ -56,12 +61,52 @@ public class AppConfigUtils {
    */
   public static String getNullValue(String value) {
     String returnValue = value;
-    if (value != null && value.equalsIgnoreCase("null")) {
+    if (value != null && isNullStringValue(value)) {
       returnValue = null;
     }
     return returnValue;
   }
   
+  /**
+   * Check to see whether the value is the literal string "null"
+   * 
+   * @param value Value to check
+   * @return true if the value is the literal string "null", false otherwise
+   */
+  public static boolean isNullStringValue(String value) {
+    return value.equalsIgnoreCase(STRING_VALUE_NULL);
+  }
+
+  /**
+   * Check to see whether the value represents a real boolean value - 'true' or 'false'
+   * 
+   * @param value Value to check
+   * @return true if a boolean value, false otherwise
+   */
+  public static boolean isBooleanValue(String value) {
+    return (value.equalsIgnoreCase("true") || value.equalsIgnoreCase("false"));
+  }
+  
+  /**
+   * Does the specified string value represent a delimited list with a default delimiter of ','
+   * 
+   * @param value String value to test
+   * @return true if the default delimiter was found in the string value, false otherwise
+   */
+  public static boolean isListValue(String value) {
+    return isListValue(value,DEFAULT_LIST_SEPARATOR);
+  }
+  
+  /**
+   * Does the specified string value represent a delimited list with the specified delimiter
+   * 
+   * @param value String value to test
+   * @param separator Separator to use
+   * @return true if the delimiter was found in the string value, false otherwise
+   */
+  public static boolean isListValue(String value, String separator) {
+    return value.indexOf(separator) > -1 ; 
+  }
   /**
    * Convert a delimited string value to an ArrayList<String>. Uses ',' as the default separator. 
    * 
@@ -69,7 +114,7 @@ public class AppConfigUtils {
    * @return Array of string values, or null if no values are present
    */
   public static ArrayList<String> getListValue(String value) {
-    return getListValue(value,",");
+    return getListValue(value,DEFAULT_LIST_SEPARATOR);
   }
   
   /**
@@ -127,7 +172,7 @@ public class AppConfigUtils {
    * @param map HashMap<String,String>
    */
   public static void dumpMap(HashMap<String,String> map) {
-    
+    dumpMap(map,System.out);
   }
   
   /**

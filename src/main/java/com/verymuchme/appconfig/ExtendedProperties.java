@@ -89,5 +89,5 @@ public class ExtendedProperties extends Properties {
   public ArrayList<String> getListProperty(String key, String separator) {
     return AppConfigUtils.getListValue(getProperty(key),separator);
   }
-  
+
 }

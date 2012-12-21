@@ -355,6 +355,35 @@ public class ConfigurationDefinitionBuilder {
   }
 
   /**
+   * Add internal settings to configuration object - e.g. allow access to current runtime environment (com.verymuchme.appconfig.runTimeEnvironment)
+   * 
+   * @param configuration Commons configuration object
+   */
+  public void addInternalProperties(CombinedConfiguration configuration) {
+    @SuppressWarnings("unchecked")
+    Enumeration<String> propertyNames = (Enumeration<String>) this.internalProperties.propertyNames();
+    while (propertyNames.hasMoreElements()) {
+      Object propertyValue = null;
+      String propertyName = propertyNames.nextElement();
+      String rawPropertyValue = this.internalProperties.getProperty(propertyName);
+      if (AppConfigUtils.isNullStringValue(rawPropertyValue)) {
+        propertyValue = null;
+      }
+      else if (AppConfigUtils.isListValue(rawPropertyValue)) {
+        propertyValue = AppConfigUtils.getListValue(rawPropertyValue);
+      }
+      else if (AppConfigUtils.isBooleanValue(rawPropertyValue)) {
+        propertyValue = AppConfigUtils.getBooleanValue(rawPropertyValue);
+      }
+      else {
+        propertyValue = rawPropertyValue;
+      }
+      configuration.addProperty(propertyName,propertyValue);
+    }
+  }
+  
+  
+  /**
    * Set configuration options
    * 
    * @param configOpts

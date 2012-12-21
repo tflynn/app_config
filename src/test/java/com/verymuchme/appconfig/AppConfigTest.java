@@ -50,15 +50,18 @@ public class AppConfigTest {
 
   Mockery context = new JUnit4Mockery();
 
-  HashMap<String,String> configurationOptions = null;
+  private static final String RUNTIME_ENVIRONMENT = "test";
+  private static final String INTERNAL_LOGGING_LEVEL = "TRACE";
+  
+  private HashMap<String,String> configurationOptions = null;
   
   @Before
   public void silenceLoggers() {
     Log4jHelper.silencePackage("freemarker");
     Log4jHelper.loadInitialInternalLogger("TRACE");
     configurationOptions = new HashMap<String,String>();
-    configurationOptions.put(ConfigurationDefinitionBuilder.RUN_TIME_ENVIRONMENT_PROPERTY_NAME,"test");
-    configurationOptions.put(ConfigurationDefinitionBuilder.DEFAULT_LOGGING_LEVEL_PROPERTY_NAME,"TRACE");
+    configurationOptions.put(ConfigurationDefinitionBuilder.RUN_TIME_ENVIRONMENT_PROPERTY_NAME,RUNTIME_ENVIRONMENT);
+    configurationOptions.put(ConfigurationDefinitionBuilder.DEFAULT_LOGGING_LEVEL_PROPERTY_NAME,INTERNAL_LOGGING_LEVEL);
   }
   
   
@@ -160,6 +163,37 @@ public class AppConfigTest {
       logger.trace(String.format("AppConfigTest.testConfigureExternal finished and %s", success ? "passed" : "failed"));
     }
     
+    
+  }
+  
+  @Test
+  public void testAdditionOfInternalProperties() {
+    
+    //Case optional files present, defaults presents
+    logger.trace("AppConfigTest.testAdditionOfInternalProperties.starting");
+    String packageName2 = "com.verymuchme.appconfig.test.internalOnly.case2";
+    boolean success = true;
+    try {
+      AppConfig appConfig = new AppConfig();
+      appConfig.setApplicationPropertiesPackageName(packageName2);
+      appConfig.setOptions(this.configurationOptions);
+      appConfig.configure();
+      CombinedConfiguration configuration = appConfig.getCombinedConfiguration();
+      assertEquals(String.format("AppConfigTest.testAdditionOfInternalProperties Runtime environment available and is %s",RUNTIME_ENVIRONMENT), RUNTIME_ENVIRONMENT, configuration.getString(ConfigurationDefinitionBuilder.RUN_TIME_ENVIRONMENT_PROPERTY_NAME));
+      assertEquals(String.format("AppConfigTest.testAdditionOfInternalProperties External directory is not specified"), null, configuration.getString(ConfigurationDefinitionBuilder.EXTERNAL_CONFIGURATION_DIRECTORY_PROPERTY_NAME));
+      assertEquals(String.format("AppConfigTest.testAdditionOfInternalProperties System properties override is false"), Boolean.FALSE, configuration.getBoolean(ConfigurationDefinitionBuilder.SYSTEM_PROPERTIES_OVERRIDE_PROPERTY_NAME));
+      ArrayList<String> expectedDefaultEnvironments = new ArrayList<String>(Arrays.asList("development","production","test"));
+      assertEquals(String.format("AppConfigTest.testAdditionOfInternalProperties default runtime environments are \"development\",\"production\",\"test\""),expectedDefaultEnvironments,
+            (ArrayList<String>) configuration.getProperty(ConfigurationDefinitionBuilder.PERMITTED_RUN_TIME_ENVIRONMENTS_PROPERTY_NAME) );
+    }
+    catch (Exception e) {
+      logger.trace(String.format("AppConfigTest.testAdditionOfInternalProperties error %s",e.getMessage()),e);
+      success = false;
+    }
+    assertTrue(success);
+
+    logger.trace(String.format("AppConfigTest.testAdditionOfInternalProperties %s", success ? "passed" : "failed"));
+
     
   }
   
