@@ -1,5 +1,5 @@
 
-# AppConfig V2.0 - Application configuration the easy way
+# AppConfig V2.3 - Application configuration the easy way
 
 ## A thin wrapper for Apache Commons Configuration
 
@@ -260,6 +260,13 @@ The following internal settings are available:
     
     # Default value of application properties package directory
     application.propertiesPackageDir = null
+
+
+#### Accessing AppConfig internal settings
+
+Settings internal to AppConfig itself (the list above) can be accessed from the application configuration object. For instance, to get the current runtime environment:
+
+    configuration.getString("com.verymuchme.appconfig.runTimeEnvironment");
 
 #### Changing the configuration template
 
