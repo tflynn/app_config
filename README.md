@@ -285,6 +285,15 @@ The following internal settings are available:
     application.propertiesPackageDir = null
 
 
+<<<<<<< HEAD
+=======
+#### Accessing AppConfig internal settings
+
+Settings internal to AppConfig itself (the list above) can be accessed from the application configuration object. For instance, to get the current runtime environment:
+
+    configuration.getString("com.verymuchme.appconfig.runTimeEnvironment");
+
+>>>>>>> d3d8ca2... Fixed documentation. AppConfig internal settings can now be accessed
 #### Changing the configuration template
 
 Apache Commons Configuration uses the concept of a configuration definition file. At its heart, all AppConfig is doing is generating a customized configuration definition file and passing it to Apache Commons Configuration to load.
