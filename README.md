@@ -31,7 +31,11 @@ Put environment-specific settings into the configuration directory in files with
 * database-[environment].properties
 * log4j-[environment].properties
 
-The contents of the files follow Java Property file syntax. The properties clearly have to match those that configure the component that's being configured.
+Where 'environment' is one of 'development','production' or 'test'. The contents of the files follow Java Property file syntax. 
+
+Override whatever settings need to be changed in the appropriate file. 
+
+    e.g. Change development database connection settings for your machine in 'database-development.properties'
 
 ### Tell AppConfig where the directory is
 
@@ -41,7 +45,7 @@ Either
 
 or
 
-      java … -Dcom.verymuchme.appconfig.externalConfigurationDirectory=~/local_appconfig ...
+      java -Dcom.verymuchme.appconfig.externalConfigurationDirectory=~/local_appconfig ...
       
 ### (Production only) Tell AppConfig to load production configurations
 
@@ -51,16 +55,39 @@ Either
 
 or
 
-      java … -Dcom.verymuchme.appconfig.externalConfigurationDirectory=~/local_appconfig \
-             -Dcom.verymuchme.appconfig.runTimeEnvironment=production ...
+      java -Dcom.verymuchme.appconfig.externalConfigurationDirectory=~/local_appconfig \
+           -Dcom.verymuchme.appconfig.runTimeEnvironment=production ...
       
 By default, AppConfig assumes you're running in 'development' mode.
 
+### Run your program
+
+When you run the program, your modified settings will be picked up automatically and be used to configure the program. 
 
 ## That's it!!
 
+## Demo
 
-## Some details
+You can generate a fully functional demo by using the following Maven archetype and instructions:
+
+    mvn archetype:generate -DarchetypeRepository=https://github.com/tflynn/mvn-repo-public/raw/master/releases -DarchetypeGroupId=com.verymuchme.archetypes -DarchetypeArtifactId=basic_jar -DarchetypeVersion=1.1 -DgroupId=com.example.demo -DartifactId=basic_jar -DartifactVersion=1.0-SNAPSHOT
+    cd basic_jar
+    mvn clean package
+    java -cp ./target/basic_jar-1.0-SNAPSHOT-jar-with-dependencies.jar com.example.demo.App
+
+Examine the following files to understand how the application is being configured:
+
+    ./src/main/java/com/example/demo/App.java
+    ./src/main/java/com/example/demo/ConfigurationLoader.java
+    ./src/main/resources/com/example/demo/application-defaults.properties
+    ./src/main/resources/com/example/demo/application-development.properties
+    ./src/main/resources/com/example/demo/application-test.properties
+    ./src/main/resources/com/example/demo/database-defaults.properties
+    ./src/main/resources/com/example/demo/log4j-defaults.properties
+    ./src/main/resources/com/example/demo/log4j-development.properties
+    ./src/main/resources/com/example/demo/log4j-test.properties
+
+## (Some of) the gory details
 
 AppConfig is designed to provide painless configuration for multiple runtime environments based on a model similar to the Ruby-on-Rails 'development/production/test' approach with all the appropriate defaulting and overriding of settings.
 
