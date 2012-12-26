@@ -15,10 +15,8 @@
 package com.verymuchme.appconfig;
 
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 
-import org.apache.commons.configuration.CombinedConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,311 +38,10 @@ import org.slf4j.LoggerFactory;
  * 
  * <p>It is based on Apache Commons Configuration http://commons.apache.org/configuration .</p>
  * 
- * <h2>Typical usage</h2>
- * 
- * <p>Suppose the settings for a component or a program that&#39;s been built with AppConfig support need to be changed.</p>
- * 
- * <h3>Create a configuration directory</h3>
- * 
- * <pre><code>  mkdir ~/local_appconfig
- * </code></pre>
- * 
- * <h3>Define environment-specific configurations</h3>
- * 
- * <p>Put environment-specific settings into the configuration directory in files with the naming patterns:</p>
- * 
- * <ul>
- * <li>application-[environemnt].properties</li>
- * <li>database-[environment].properties</li>
- * <li>log4j-[environment].properties</li>
- * </ul>
- * 
- * <p>The contents of the files follow Java Property file syntax. The properties clearly have to match those that configure the component that&#39;s being configured.</p>
- * 
- * <h3>Tell AppConfig where the directory is</h3>
- * 
- * <p>Either</p>
- * 
- * <pre><code>  export com.verymuchme.appconfig.externalConfigurationDirectory=~/local_appconfig
- * </code></pre>
- * 
- * <p>or</p>
- * 
- * <pre><code>  java â€¦ -Dcom.verymuchme.appconfig.externalConfigurationDirectory=~/local_appconfig ...
- * </code></pre>
- * 
- * <h3>(Production only) Tell AppConfig to load production configurations</h3>
- * 
- * <p>Either</p>
- * 
- * <pre><code>  export com.verymuchme.appconfig.runTimeEnvironment=production
- * </code></pre>
- * 
- * <p>or</p>
- * 
- * <pre><code>  java â€¦ -Dcom.verymuchme.appconfig.externalConfigurationDirectory=~/local_appconfig \
- *          -Dcom.verymuchme.appconfig.runTimeEnvironment=production ...
- * </code></pre>
- * 
- * <p>By default, AppConfig assumes you&#39;re running in &#39;development&#39; mode.</p>
- * 
- * <h2>That&#39;s it!!</h2>
- * 
- * <h2>Some details</h2>
- * 
- * <p>AppConfig is designed to provide painless configuration for multiple runtime environments based on a model similar to the Ruby-on-Rails &#39;development/production/test&#39; approach with all the appropriate defaulting and overriding of settings.</p>
- * 
- * <p>It is particularly targeted at the problem of configuring components and applications &#39;from the outside&#39; without needing to modify the packaged artifact.</p>
- * 
- * <p>It is based on Apache Commons Configuration http://commons.apache.org/configuration .
- * AppConfig is designed to provide painless multi-environment, external and internal configuration with default settings for components and programs.</p>
- * 
- * <h3>Using AppConfig in code</h3>
- * 
- * <h4>Initialize AppConfig</h4>
- * 
- * <pre><code>  AppConfig appConfig = new AppConfig();
- *   appConfig.setApplicationPropertiesPackageName(&quot;your base package name&quot;);
- *   appConfig.setExternalConfigurationDirectory(&quot;configuration directory name&quot;);
- *   appConfig.configure();
- * </code></pre>
- * 
- * <h5>Where to put configuration files</h5>
- * 
- * <p>Configuration files should be stored at the root of your package. </p>
- * 
- * <p><strong>Do NOT</strong> place them at the root your source tree. If you do, unpredictable things will happen when you try to load configuations in a project containing multiple AppConfig-enabled components. </p>
- * 
- * <p>Example:</p>
- * 
- * <p>AppConfig itself is a Maven-based package with a base package of &#39;com.verymuchme.appconfig&#39;. So, configuration files would be placed in:</p>
- * 
- * <pre><code>./src/main/resources/com/verymuchme/appconfig
- * </code></pre>
- * 
- * <h4>Configurations load sequence</h4>
- * 
- * <p>The following files will be automatically loaded in the order shown. </p>
- * 
- * <pre><code>  application-development.properties (optional)
- *   database-development.properties (optional)
- *   log4j-development.properties (optional)
- *   application-defaults.properties 
- *   database-defaults.properties
- *   log4j-defaults.properties (optional)
- * </code></pre>
- * 
- * <p>For each file, the search order is the following:</p>
- * 
- * <ul>
- * <li>the configuration directory (if defined)</li>
- * <li>the user directory</li>
- * <li>any jars in the classpath</li>
- * <li>any jars in the system classpath</li>
- * </ul>
- * 
- * <p>Following the Apache Commons Configuration convention, if the same key found in multiple files, the value from the first file found and loaded wins. So, in this case, &#39;development&#39; trumps &#39;defsults&#39; - just the desired behavior.</p>
- * 
- * <p>In general, if a file is shown, it must be present in one of the locations or an exception will be thrown. It may be empty. &#39;Optional&#39; indicates that the file can be absent. </p>
- * 
- * <h3>And configuration settings are available</h3>
- * 
- * <pre><code>CombinedConfiguration configuration = appConfig.getCombinedConfiguration();
- * 
- * // See Apache Commons Configuration API docs for more information 
- * // http://commons.apache.org/configuration/apidocs/index.html
- * String configurationValue = combinedConfiguration.getString(&quot;some property name&quot;); 
- * </code></pre>
- * 
- * <h3>Logging</h3>
- * 
- * <p>The logging configuration support assumes that the back-end logging can be configured using Log4j V1 (1.2.14) syntax.  If you use the Slf4j logging front-end, that will be true.</p>
- * 
- * <p>In code, all you need is something similar to:</p>
- * 
- * <pre><code>import org.slf4j.Logger;
- * import org.slf4j.LoggerFactory;
- * â€¦
- * public class SomeClass {
- *   â€¦
- *   private static final Logger logger = LoggerFactory.getLogger(SomeClass.class);
- *   â€¦
- *   public void someMethod() {
- *     â€¦
- *     logger.debug(&quot;Some significant message&quot;);
- *     â€¦
- *   }
- *   â€¦
- * }
- * </code></pre>
- * 
- * <p>And in the POM file - or equivalend dependency management</p>
- * 
- * <pre><code>&lt;dependency&gt;
- *   &lt;groupId&gt;org.slf4j&lt;/groupId&gt;
- *   &lt;artifactId&gt;jcl-over-slf4j&lt;/artifactId&gt;
- *   &lt;version&gt;1.5.8&lt;/version&gt;
- * &lt;/dependency&gt;
- * &lt;dependency&gt;
- *   &lt;groupId&gt;org.slf4j&lt;/groupId&gt;
- *   &lt;artifactId&gt;slf4j-api&lt;/artifactId&gt;
- *   &lt;version&gt;1.5.8&lt;/version&gt;
- * &lt;/dependency&gt;
- * &lt;dependency&gt;
- *   &lt;groupId&gt;org.slf4j&lt;/groupId&gt;
- *   &lt;artifactId&gt;slf4j-log4j12&lt;/artifactId&gt;
- *   &lt;version&gt;1.5.8&lt;/version&gt;
- * &lt;/dependency&gt;
- * &lt;dependency&gt;
- *   &lt;groupId&gt;log4j&lt;/groupId&gt;
- *   &lt;artifactId&gt;log4j&lt;/artifactId&gt;
- *   &lt;version&gt;1.2.14&lt;/version&gt;
- * &lt;/dependency&gt;
- * </code></pre>
- * 
- * <h2>Advanced information</h2>
- * 
- * <h3>Error handling</h3>
- * 
- * <p>Application or component configuration normally happens at point where the artifact starts. It&#39;s also usually the case that a problem with the configuration is serious if not fatal.</p>
- * 
- * <p>That assumption led to two simple decisions. </p>
- * 
- * <ul>
- * <li>If AppConfig encounters a problem when configuring the artifact, it will log the problem and throw an exception.</li>
- * <li>All exceptions are wrapped with AppConfigException - <strong>an unchecked, Runtime exception</strong>.</li>
- * </ul>
- * 
- * <p>So, a try/catch is needed around the AppConfig initialization (shown above) if the code wants to detect configuration errors and exit gracefully.</p>
- * 
- * <h3>Overriding default behaviors</h3>
- * 
- * <p>Most AppConfig internal behaviors can be overriden with appropriate feature switches. </p>
- * 
- * <p>The value of a particular feature switch is determined hierarchically, with the first value found for a particular setting being used. The searcn order in which the switch settings are examined is:</p>
- * 
- * <ul>
- * <li>Internal, programmatically defined options
- * 
- * <ul>
- * <li>Specified when initializing AppConfig using the &#39;appConfig.setOptions(..)&#39; syntax</li>
- * </ul></li>
- * <li>Command-line options
- * 
- * <ul>
- * <li>Specified using JVM &#39;-D[setting name]=[setting value]&#39; syntax</li>
- * </ul></li>
- * <li>Environment settings
- * 
- * <ul>
- * <li>Specified using &#39;export [setting name]=[setting value]&#39; syntax or equivalent</li>
- * </ul></li>
- * <li>Internal default value
- * 
- * <ul>
- * <li>Default internal settings are managed as property files so property File syntax applies</li>
- * </ul></li>
- * </ul>
- * 
- * <p><strong>The setting name is the same in all cases.</strong></p>
- * 
- * <p>The following internal settings are available:</p>
- * 
- * <pre><code># 
- * # Internal defaults for all settings that can be overridden
- * #
- * # Property values are specified with a slightly extended property syntax
- * # 
- * # &quot;true&quot; / &quot;false&quot; are recognized as boolean values
- * # &quot;null&quot; is recognized as the null value
- * # a comma delimited list of values is recognized as an array of string values
- * # 
- * 
- * # File name for internal default properties
- * com.verymuchme.appconfig.internalDefaultPropertiesFileName = null
- * 
- * # Include the Apache Commons Configuration definition file to include the &quot;&lt;system/&gt;&quot; element as the first definition
- * com.verymuchme.appconfig.systemPropertiesOverride = false
- * 
- * # Allowed run time environment names
- * com.verymuchme.appconfig.permittedRunTimeEnvironments = development,production,test
- * # Current run time environment name
- * com.verymuchme.appconfig.runTimeEnvironment = development
- * # Default run time environment name
- * com.verymuchme.appconfig.defaultRunTimeEnvironment = development
- * 
- * # External configuration directory
- * com.verymuchme.appconfig.externalConfigurationDirectory = null
- * 
- * # Default prefix for application configuration files
- * com.verymuchme.appconfig.applicationConfigurationPrefix = application
- * 
- * # Default prefix for database configuration files
- * com.verymuchme.appconfig.database.ConfigurationPrefix = database
- * # Require a default database configuration file
- * com.verymuchme.appconfig.database.defaultConfigurationEnabled = true
- * 
- * # Default prefix for a log4j configuration file
- * com.verymuchme.appconfig.log4j.ConfigurationPrefix = log4j
- * # Require a default log4j configuration file
- * com.verymuchme.appconfig.log4j.defaultConfigurationEnabled = true
- * 
- * # Default suffix for all configuration files
- * com.verymuchme.appconfig.configurationNameSuffix = properties
- * 
- * # Default prefix for default configuration files
- * com.verymuchme.appconfig.defaultConfigurationName = defaults
- * 
- * # Default name for Freemarker configuration template
- * com.verymuchme.appconfig.configurationTemplateName = configuration-xml.ftl
- * 
- * # Base class for Freemarker to use to find template
- * com.verymuchme.appconfig.freemarker.baseClassName = null
- * 
- * # Default AppConfig logging level at startup
- * com.verymuchme.appconfig.log4j.logLevel = ERROR
- * 
- * # Name of AppConfig internal log4j configuration file
- * com.verymuchme.appconfig.log4j.internalConfigurationFileName = log4j-internal-logger.properties
- * 
- * # Default value of application properties package name
- * application.propertiesPackageName = null
- * 
- * # Default value of application properties package directory
- * application.propertiesPackageDir = null
- * </code></pre>
- * 
- * <h4>Changing the configuration template</h4>
- * 
- * <p>Apache Commons Configuration uses the concept of a configuration definition file. At its heart, all AppConfig is doing is generating a customized configuration definition file and passing it to Apache Commons Configuration to load.</p>
- * 
- * <p>If the default template in AppConfig isn&#39;t suitable, it can be changed by setting the internal setting &#39;com.verymuchme.appconfig.configurationTemplateName&#39; to point to another template. The template is a Freemarker template. Have a look at the AppConfig source before making a change to see what settings are passed to the template.</p>
- * 
- * <h3>AppConfig Source</h3>
- * 
- * <p>The AppConfig source is managed at https://github.com/tflynn/app_config.</p>
- * 
- * <h2>Maven dependency information</h2>
- * 
- * <pre><code>&lt;repository&gt;
- *   &lt;id&gt;mvn-repo-releases&lt;/id&gt;
- *   &lt;url&gt;https://github.com/tflynn/mvn-repo-public/raw/master/releases&lt;/url&gt;
- * &lt;/repository&gt;
- * 
- * &lt;repository&gt;
- *   &lt;id&gt;mvn-repo-snapshots&lt;/id&gt;
- *   &lt;url&gt;https://github.com/tflynn/mvn-repo-public/raw/master/snapshots&lt;/url&gt;
- * &lt;/repository&gt;
- * 
- * &lt;dependency&gt;
- *   &lt;groupId&gt;com.verymuchme.appconfig&lt;/groupId&gt;
- *   &lt;artifactId&gt;app_config&lt;/artifactId&gt;
- *   &lt;version&gt;2.0&lt;/version&gt;
- * &lt;/dependency&gt;
- * </code></pre>
+ * <p> See README.html or https://github.com/tflynn/app_config#readme for full documentation.
  * 
  * @author Tracy Flynn
- * @version 2.0
+ * @version 3.0
  * @since 1.0
  */
 public class AppConfig {
@@ -357,12 +54,17 @@ public class AppConfig {
   /*
    * Configuration options
    */
-  private HashMap<String,String> configurationOptions = new HashMap<String,String>();
+  private Options options = new Options();
+  
+  /*
+   * Internal properties
+   */
+  private ExtendedProperties internalProperties = null;
 
   /*
-   * Private copy of Configuration object returned from DefaultConfigurationBuilder
+   * Private copy of Configuration object returned
    */
-  private CombinedConfiguration combinedConfiguration = null;
+  private Configuration configuration = null;
   
   /*
    * Base application package name with which to locate application property files 
@@ -374,41 +76,96 @@ public class AppConfig {
    */
   private String externalConfigurationDirectory = null;
   
+  /*
+   * Configuration builder
+   */
+  private ConfigurationBuilder configurationBuilder = NullConfigurationBuilder.getInstance();
+  
+  /*
+   * Logging helper instance
+   */
+  private LoggingHelper loggingHelper = NullLoggingHelper.getInstance();
 
+  /*
+   * Configuration Helper instance
+   */
+  private ConfigurationHelper configurationHelper = new ConfigurationHelper();
+  
   /**
    * Create a new AppConfig instance
    */
   public AppConfig() {
+    this(null);
   }
 
+  /**
+   * Create a new AppConfig instance
+   * 
+   * @param runtimeOptions Runtime options as a HashMap
+   */
+  public AppConfig(HashMap<String,Object> runtimeOptions) {
+    this(runtimeOptions, null,null);
+  }
+
+  /**
+   * Create a new AppConfig instance
+   * 
+   * @param options Runtime options as a HashMap
+   * @param configurationBuilder Specify a custom configuration builder
+   * @param loggingHelper Specify a custom loggingHelper
+   */
+  public AppConfig(HashMap<String,Object> options, ConfigurationBuilder configurationBuilder, LoggingHelper loggingHelper) {
+    this.setOptions(options);
+    this.setConfigurationBuilder(configurationBuilder);
+    this.setLoggingHelper(loggingHelper);
+  }
+  
+  
   /**
    * Configure AppConfig
    */
   public void configure() {
     
-    // Configure logging using internal defaults. Allow override for initial logging level from configuration options
-    String logLevelOverride = this.configurationOptions.get(ConfigurationDefinitionBuilder.DEFAULT_LOGGING_LEVEL_PROPERTY_NAME);
-    Log4jHelper.loadInitialInternalLogger(logLevelOverride);
-    logger.trace(String.format("AppConfig.configure Added initial internal logger"));
+    // Configure logging using internal defaults. Allow override for initial logging level
+    String logLevelOverride = (String) this.configurationHelper.getSettingFromOptionsEnvSystem(InternalConfigurationConstants.DEFAULT_BOOTSTRAP_LOGGING_LEVEL_PROPERTY_NAME, this.options);
+    this.loggingHelper.bootstrapInternalLogging(logLevelOverride);
+    logger.trace(String.format("AppConfig.configure Added bootstrap internal logging"));
     
-    
-    // Get the configuration definition
-    // Make sure to pass the values from the convenience accessors 
-    this.configurationOptions.put(ConfigurationDefinitionBuilder.APPLICATION_PROPERTIES_PACKAGE_NAME_PROPERTY_NAME, this.applicationPropertiesPackageName);
-    this.configurationOptions.put(ConfigurationDefinitionBuilder.EXTERNAL_CONFIGURATION_DIRECTORY_PROPERTY_NAME,this.externalConfigurationDirectory);
-    ConfigurationDefinitionBuilder configurationBuilder = new ConfigurationDefinitionBuilder(this.configurationOptions);
+    // Get internal properties - full defaulting rules applied - first found wins - options, system properties, environment variables, defaults
+    this.internalProperties = this.configurationHelper.loadInternalProperties(this.options);
+
+    // Make sure the runtime environment is set
+    this.configurationHelper.checkRunTimeEnvironment(this.internalProperties);
+
     if (logger.isTraceEnabled()) {
-      logger.trace(String.format("AppConfig.configure runtime options passed to ConfigurationDefinitionBuilder"));
-      AppConfigUtils.dumpMap(this.configurationOptions);
+      logger.trace(String.format("AppConfig.configure runtime options and internal properties"));
+      AppConfigUtils.dumpProperties(this.internalProperties);
     }
     
-    
-    // Go and generate and default all property settings as appropriate
-    configurationBuilder.setInternalProperties();
-    
-    // Now that all the properties are loaded and defaulted appropriately, load the real internal Log4j configuration
-    Log4jHelper.loadInternalLogger(configurationBuilder.getInternalProperties());
+    // Load the real internal logger configuration
+    String loggingConfigurationFileName = internalProperties.getProperty(InternalConfigurationConstants.INTERNAL_LOGGING_CONFIGURATION_FILE_PROPERTY_NAME);
+    String loggingLevel = internalProperties.getProperty(InternalConfigurationConstants.DEFAULT_LOGGING_LEVEL_PROPERTY_NAME);
+    this.loggingHelper.configureLoggerFromConfigurationFile(loggingConfigurationFileName,loggingLevel);
 
+    // Generate the configuration
+    // Make sure to pass the values from the convenience accessors
+    this.options.put(ConfigurationDefinitionBuilder.APPLICATION_PROPERTIES_PACKAGE_NAME_PROPERTY_NAME, this.applicationPropertiesPackageName);
+    this.options.put(ConfigurationDefinitionBuilder.EXTERNAL_CONFIGURATION_DIRECTORY_PROPERTY_NAME,this.externalConfigurationDirectory);
+    if (this.applicationPropertiesPackageName != null) {
+      String packageDir = this.applicationPropertiesPackageName.replaceAll("\\.", "/");
+      this.options.put(InternalConfigurationConstants.APPLICATION_PROPERTIES_PACKAGE_DIR_PROPERTY_NAME, packageDir);
+    }
+    // Get a ConfigurationBuilder
+    if (this.configurationBuilder == null) {
+      this.configurationBuilder = ConfigurationBuilderFactory.instance(this.internalProperties);
+    }
+    this.configurationBuilder.setInternalProperties(this.internalProperties);
+    // Now generate the actual configuration
+    this.configuration = this.configurationBuilder.buildConfiguration();
+
+    logger.trace(String.format("AppConfig.configure Generated configuration definitions"));
+
+    /*
     // Now generate the actual configuration
     String configurationDefinition = configurationBuilder.generateConfigurationDefinition();
 
@@ -419,85 +176,93 @@ public class AppConfig {
     Log4jHelper.loadLog4jConfiguration(log4jConfigNames, logger);
     logger.trace(String.format("AppConfig.configure loaded application logging"));
 
-    // Load the configuration definition
-    this.combinedConfiguration = configurationBuilder.loadConfigurationDefinition(configurationDefinition);
-    
     // Add internal properties into the application properties
     configurationBuilder.addInternalProperties(this.combinedConfiguration);
     
+    */
   }
   
   
   /**
    * Set configuration options
    * 
-   * @param configOpts
+   * @param options
+   * 
+   * @return Current AppConfig instance
    */
-  public void setOptions(HashMap<String,String> configOpts) {
-    this.configurationOptions = configOpts;
+  public AppConfig setOptions(HashMap<String,Object> options) {
+    this.options = options == null ? new Options() : new Options(options); 
+    return this;
+  }
+
+  /**
+   * Set configuration options
+   * 
+   * @param options
+   * 
+   * @return Current AppConfig instance
+   */
+  public AppConfig setOptions(Options options) {
+    this.options = options == null ? new Options() : options; 
+    return this;
   }
   
   /**
-   * Get configuration options
+   * Set the active ConfigurationBuilder instance
    * 
-   * @return Configuration options
+   * @param configurationBuilder ConfigurationBuilder instance
+   * 
+   * @return Current AppConfig instance
    */
-   public HashMap<String,String> getOptions() {
-     return this.configurationOptions;
-   }
+  public AppConfig setConfigurationBuilder(ConfigurationBuilder configurationBuilder) {
+    this.configurationBuilder = configurationBuilder;
+    return this;
+  }
+  
+  /**
+   * Set the active LoggingHelper instance
+   * 
+   * @param loggingHelper LoggingHelper instance
+   * 
+   * @return Current AppConfig instance
+   */
+  public AppConfig setLoggingHelper(LoggingHelper loggingHelper) {
+    this.loggingHelper = loggingHelper == null ? LoggingHelperFactory.instance(this.options) : loggingHelper;
+    return this;
+  }
+
+  /**
+   * Set the base application package name with which to locate application property files
+   * 
+   * @param applicationPropertiesPackageName
+   * 
+   * @return Current AppConfig instance
+   */
+  public AppConfig setApplicationPropertiesPackageName(String applicationPropertiesPackageName) {
+    this.applicationPropertiesPackageName = applicationPropertiesPackageName;
+    return this;
+  }
+
+  /**
+   * Set the external configuration directory
+   * 
+   * @param externalConfigurationDirectory
+   * 
+   * @return Current AppConfig instance
+  */
+  public AppConfig setExternalConfigurationDirectory(String externalConfigurationDirectory) {
+    this.externalConfigurationDirectory = externalConfigurationDirectory;
+    return this;
+  }
 
    /**
     * Get the current configuration object
     * 
     * @return Current configuration object
     */
-   public CombinedConfiguration getCombinedConfiguration() {
-     return combinedConfiguration;
+   public Configuration getConfiguration() {
+     return this.configuration;
    }
 
-   /**
-    * Set the current configuration object
-    * 
-    * @param combinedConfiguration Current configuration object
-    */
-   public void setCombinedConfiguration(CombinedConfiguration combinedConfiguration) {
-     this.combinedConfiguration = combinedConfiguration;
-   }
-
-   /**
-    * Get the base application package name with which to locate application property files
-    * 
-    * @return Package name
-    */
-   public String getApplicationPropertiesPackageName() {
-     return this.applicationPropertiesPackageName;
-   }
-
-   /**
-    * Set the base application package name with which to locate application property files
-    * 
-    * @param applicationPropertiesPackageName
-    */
-   public void setApplicationPropertiesPackageName(String applicationPropertiesPackageName) {
-     this.applicationPropertiesPackageName = applicationPropertiesPackageName;
-   }
-
-   /**
-    * Get the external configuration directory
-    * 
-    * @return External configuration directory
-    */
-   public String getExternalConfigurationDirectory() {
-     return externalConfigurationDirectory;
-   }
-
-   /**
-    * Set the external configuration directory
-    * 
-    * @param externalConfigurationDirectory
-    */
-   public void setExternalConfigurationDirectory(String externalConfigurationDirectory) {
-     this.externalConfigurationDirectory = externalConfigurationDirectory;
-   }
    
 }

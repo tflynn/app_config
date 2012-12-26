@@ -26,44 +26,58 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
-import org.apache.commons.configuration.CombinedConfiguration;
-import org.apache.commons.configuration.Configuration;
-import org.apache.commons.configuration.ConfigurationException;
-import org.jmock.Mockery;
-import org.jmock.integration.junit4.JMock;
-import org.jmock.integration.junit4.JUnit4Mockery;
+import static org.mockito.Mockito.*;
+import static org.junit.Assert.*;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.apache.commons.configuration.DefaultConfigurationBuilder;
-
-import com.verymuchme.appconfig.test.TestBase;
-
-@RunWith(JMock.class)
 public class AppConfigTest {
 
   private static final Logger logger = LoggerFactory.getLogger(AppConfigTest.class);
   
 
-  Mockery context = new JUnit4Mockery();
-
   private static final String RUNTIME_ENVIRONMENT = "test";
   private static final String INTERNAL_LOGGING_LEVEL = "TRACE";
   
-  private HashMap<String,String> configurationOptions = null;
+  private Options runtimeOptions = null;
   
   @Before
-  public void silenceLoggers() {
-    Log4jHelper.silencePackage("freemarker");
-    Log4jHelper.loadInitialInternalLogger("TRACE");
-    configurationOptions = new HashMap<String,String>();
-    configurationOptions.put(ConfigurationDefinitionBuilder.RUN_TIME_ENVIRONMENT_PROPERTY_NAME,RUNTIME_ENVIRONMENT);
-    configurationOptions.put(ConfigurationDefinitionBuilder.DEFAULT_LOGGING_LEVEL_PROPERTY_NAME,INTERNAL_LOGGING_LEVEL);
+  public void quietLoggers() {
+    LoggingHelper loggingHelper = LoggingHelperFactory.instance();
+    loggingHelper.quietLoggingInitializationMessages("freemarker");
+    runtimeOptions = new Options();
+    runtimeOptions.setProperty(InternalConfigurationConstants.RUN_TIME_ENVIRONMENT_PROPERTY_NAME,RUNTIME_ENVIRONMENT);
+    runtimeOptions.setProperty(InternalConfigurationConstants.DEFAULT_LOGGING_LEVEL_PROPERTY_NAME,INTERNAL_LOGGING_LEVEL);
   }
   
+  @Test
+  public void verifyInternalBootstrapLoggingInitializedToCorrectLevel() {
+    
+    LoggingHelper mockLoggingHelper = mock(LoggingHelper.class);
+    AppConfig appConfig = null;
+    
+    appConfig = new AppConfig();
+    appConfig.setLoggingHelper(mockLoggingHelper);
+    appConfig.configure();
+    verify(mockLoggingHelper).bootstrapInternalLogging(null);
+    
+    appConfig = new AppConfig();
+    appConfig.setLoggingHelper(mockLoggingHelper);
+    appConfig.setOptions(runtimeOptions);
+    appConfig.configure();
+    verify(mockLoggingHelper).bootstrapInternalLogging(INTERNAL_LOGGING_LEVEL);
+    
+  }
+  
+  @Test
+  public void verifyInternalBootstrapLoggingInitialized() {
+    AppConfig appConfig = new AppConfig();
+    appConfig.configure();
+  }
   
   @Test
   public void testConfigureInternalOnly() {
@@ -75,7 +89,7 @@ public class AppConfigTest {
     try {
       AppConfig appConfig = new AppConfig();
       appConfig.setApplicationPropertiesPackageName(packageName1);
-      appConfig.setOptions(this.configurationOptions);
+      appConfig.setOptions(this.runtimeOptions);
       appConfig.configure();
     }
     catch (Exception e) {
@@ -94,9 +108,9 @@ public class AppConfigTest {
     try {
       AppConfig appConfig = new AppConfig();
       appConfig.setApplicationPropertiesPackageName(packageName2);
-      appConfig.setOptions(this.configurationOptions);
+      appConfig.setOptions(this.runtimeOptions);
       appConfig.configure();
-      CombinedConfiguration configuration = appConfig.getCombinedConfiguration();
+      Configuration configuration = appConfig.getConfiguration();
       assertEquals("Optional properties files present, defaults present value not overridden", "app_value1", configuration.getString("app.test.value.1"));
       assertEquals("Optional properties files present, defaults present value overridden", "app_value2", configuration.getString("app.test.value.2"));
       assertEquals("Optional properties files present, defaults present value overridden", "db_value1", configuration.getString("db.test.value.1"));
@@ -137,9 +151,9 @@ public class AppConfigTest {
       AppConfig appConfig = new AppConfig();
       appConfig.setApplicationPropertiesPackageName(packageName2);
       appConfig.setExternalConfigurationDirectory(tempDirName);
-      appConfig.setOptions(this.configurationOptions);
+      appConfig.setOptions(this.runtimeOptions);
       appConfig.configure();
-      CombinedConfiguration configuration = appConfig.getCombinedConfiguration();
+      Configuration configuration = appConfig.getConfiguration();
       assertEquals("Optional properties files present, defaults present value overridden", appConfigValue , configuration.getString("app.test.value.1"));
       assertEquals("Optional properties files present, defaults present value not overridden", "app_value2", configuration.getString("app.test.value.2"));
       assertEquals("Optional properties files present, defaults present value overridden", "db_value1", configuration.getString("db.test.value.1"));
@@ -176,9 +190,9 @@ public class AppConfigTest {
     try {
       AppConfig appConfig = new AppConfig();
       appConfig.setApplicationPropertiesPackageName(packageName2);
-      appConfig.setOptions(this.configurationOptions);
+      appConfig.setOptions(this.runtimeOptions);
       appConfig.configure();
-      CombinedConfiguration configuration = appConfig.getCombinedConfiguration();
+      Configuration configuration = appConfig.getConfiguration();
       assertEquals(String.format("AppConfigTest.testAdditionOfInternalProperties Runtime environment available and is %s",RUNTIME_ENVIRONMENT), RUNTIME_ENVIRONMENT, configuration.getString(ConfigurationDefinitionBuilder.RUN_TIME_ENVIRONMENT_PROPERTY_NAME));
       assertEquals(String.format("AppConfigTest.testAdditionOfInternalProperties External directory is not specified"), null, configuration.getString(ConfigurationDefinitionBuilder.EXTERNAL_CONFIGURATION_DIRECTORY_PROPERTY_NAME));
       assertEquals(String.format("AppConfigTest.testAdditionOfInternalProperties System properties override is false"), Boolean.FALSE, configuration.getBoolean(ConfigurationDefinitionBuilder.SYSTEM_PROPERTIES_OVERRIDE_PROPERTY_NAME));

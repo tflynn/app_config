@@ -191,7 +191,7 @@ public class ConfigurationDefinitionBuilder {
 
     if (logger.isTraceEnabled()) {
       logger.trace(String.format("ConfigurationDefinitionBuilder.setInternalProperties internalProperties settings"));
-      AppConfigUtils.dumpMap(this.internalProperties);
+      //AppConfigUtils.dumpMap(this.internalProperties);
     }
 
   } 

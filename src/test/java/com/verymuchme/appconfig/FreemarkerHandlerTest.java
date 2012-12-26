@@ -23,9 +23,6 @@ import java.util.List;
 
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
-import org.jmock.Mockery;
-import org.jmock.integration.junit4.JMock;
-import org.jmock.integration.junit4.JUnit4Mockery;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -34,13 +31,10 @@ import org.slf4j.LoggerFactory;
 
 import org.apache.commons.configuration.DefaultConfigurationBuilder;
 
-@RunWith(JMock.class)
 public class FreemarkerHandlerTest {
 
   private static final Logger logger = LoggerFactory.getLogger(FreemarkerHandlerTest.class);
 
-  Mockery context = new JUnit4Mockery();
-  
   @Before
   public void silenceLoggers() {
     Log4jHelper.silencePackage("freemarker");

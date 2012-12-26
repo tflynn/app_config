@@ -22,6 +22,9 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * Useful string conversion tools
  * 
@@ -32,6 +35,11 @@ import java.util.Set;
  */
 public class AppConfigUtils {
   
+  /*
+   * Logger instance for this class
+   */
+  private static final Logger logger = LoggerFactory.getLogger(AppConfigUtils.class);
+
   public static final String DEFAULT_LIST_SEPARATOR = ",";
   
   public static final String STRING_VALUE_NULL = "null";
@@ -139,7 +147,24 @@ public class AppConfigUtils {
     return returnList;
   }
   
-
+  /**
+   * Try to convert an object to its corresponding string value via 'toString()' method
+   * 
+   * @param objectValue Object to convert
+   * @return String value or empty string if any problem
+   */
+  public static String getStringValue(Object objectValue) {
+    String stringValue = "";
+    try {
+      stringValue = objectValue.toString();
+    }
+    catch (Exception e) {
+      logger.warn("AppConfig.AppConfigUtils.getStringValue error converting object to string value");
+      stringValue = "";
+    }
+    return stringValue;
+  }
+  
   /**
    * Dump a properties file to System.out
    * 
@@ -196,8 +221,8 @@ public class AppConfigUtils {
    * 
    * @param map Map to dump
    */
-  public static void dumpMap(Map<Object,Object> map) {
-    dumpMap(map,System.out);
+  public static void dumpMapGeneric(Map<Object,Object> map) {
+    dumpMapGeneric(map,System.out);
   }
   
   /**
@@ -207,7 +232,7 @@ public class AppConfigUtils {
    * @param out Output PrintStream
    */
   @SuppressWarnings("unchecked")
-  public static void dumpMap(Map<Object,Object> map, PrintStream out) {
+  public static void dumpMapGeneric(Map<Object,Object> map, PrintStream out) {
     String lineTerm = System.getProperty("line.separator");
     Iterator<Object> it = map.keySet().iterator();
     while (it.hasNext()) {

@@ -2,17 +2,17 @@
 
 <configuration>
 
-	<#if systemOverride == "true"><system/></#if>
+	<#if appconfig_systemPropertiesOverride??><system/></#if>
 
-	<#if externalConfigurationDirectory??><properties fileName="${externalConfigurationDirectory}/${applicationPrefix}-${rtEnv}.${suffix}" config-optional="true"/></#if>
-	<properties fileName="${packageDir}/${applicationPrefix}-${rtEnv}.${suffix}" config-optional="true"/>
-	<#if externalConfigurationDirectory??><properties fileName="${externalConfigurationDirectory}/${applicationPrefix}-${defaultPropName}.${suffix}" config-optional="true"/></#if>
-	<properties fileName="${packageDir}/${applicationPrefix}-${defaultPropName}.${suffix}"/>
+	<#if appconfig_externalConfigurationDirectory??><properties fileName="${appconfig_externalConfigurationDirectory}/${appconfig_applicationConfigurationPrefix}-${appconfig_runTimeEnvironment}.${appconfig_configurationNameSuffix}" config-optional="true"/></#if>
+	<#if application_propertiesPackageDir??><properties fileName="${application_propertiesPackageDir}/${appconfig_applicationConfigurationPrefix}-${appconfig_runTimeEnvironment}.${appconfig_configurationNameSuffix}" config-optional="true"/></#if>
+	<#if appconfig_externalConfigurationDirectory??><properties fileName="${appconfig_externalConfigurationDirectory}/${appconfig_applicationConfigurationPrefix}-${appconfig_defaultConfigurationName}.${appconfig_configurationNameSuffix}" config-optional="true"/></#if>
+	<#if application_propertiesPackageDir??><properties fileName="${application_propertiesPackageDir}/${appconfig_applicationConfigurationPrefix}-${appconfig_defaultConfigurationName}.${appconfig_configurationNameSuffix}"/></#if>
 
-	<#if externalConfigurationDirectory??><properties fileName="${externalConfigurationDirectory}/${databasePrefix}-${rtEnv}.${suffix}" config-optional="true"/></#if>
-	<properties fileName="${packageDir}/${databasePrefix}-${rtEnv}.${suffix}" config-optional="true"/>
-	<#if externalConfigurationDirectory??><properties fileName="${externalConfigurationDirectory}/${databasePrefix}-${defaultPropName}.${suffix}" config-optional="true"/></#if>
-	<properties fileName="${packageDir}/${databasePrefix}-${defaultPropName}.${suffix}"/>
+	<#if appconfig_externalConfigurationDirectory??><properties fileName="${appconfig_externalConfigurationDirectory}/${appconfig_database_ConfigurationPrefix}-${appconfig_runTimeEnvironment}.${appconfig_configurationNameSuffix}" config-optional="true"/></#if>
+	<#if application_propertiesPackageDir??><properties fileName="${application_propertiesPackageDir}/${appconfig_database_ConfigurationPrefix}-${appconfig_runTimeEnvironment}.${appconfig_configurationNameSuffix}" config-optional="true"/></#if>
+	<#if appconfig_externalConfigurationDirectory??><properties fileName="${appconfig_externalConfigurationDirectory}/${appconfig_database_ConfigurationPrefix}-${appconfig_defaultConfigurationName}.${appconfig_configurationNameSuffix}" config-optional="true"/></#if>
+	<#if application_propertiesPackageDir??><properties fileName="${application_propertiesPackageDir}/${appconfig_database_ConfigurationPrefix}-${appconfig_defaultConfigurationName}.${appconfig_configurationNameSuffix}"/></#if>
 	
 </configuration>
 

@@ -4,7 +4,7 @@
 
   <groupId>com.verymuchme.appconfig</groupId>
   <artifactId>app_config</artifactId>
-  <version>2.3</version>
+  <version>3.0</version>
   <packaging>jar</packaging>
 
   <name>app_config</name>
@@ -82,12 +82,24 @@
     </dependency>
 
     <dependency>
-      <groupId>org.jmock</groupId>
-      <artifactId>jmock-junit4</artifactId>
-      <version>2.5.1</version>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-all</artifactId>
+      <version>1.9.5</version>
+    </dependency>    
+    
+   <dependency>
+      <groupId>org.powermock</groupId>
+      <artifactId>powermock-module-junit4</artifactId>
+      <version>1.5</version>
       <scope>test</scope>
-    </dependency>
-
+   </dependency>
+   <dependency>
+      <groupId>org.powermock</groupId>
+      <artifactId>powermock-api-mockito</artifactId>
+      <version>1.5</version>
+      <scope>test</scope>
+   </dependency>
+    
     <!--  Logging -->
     <dependency>
       <groupId>org.slf4j</groupId>
@@ -107,7 +119,7 @@
     <dependency>
       <groupId>log4j</groupId>
       <artifactId>log4j</artifactId>
-      <version>1.2.14</version>
+      <version>1.2.17</version>
     </dependency>
 
 
