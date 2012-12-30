@@ -95,8 +95,6 @@ It is particularly targeted at the problem of configuring components and applica
 
 It is based on Apache Commons Configuration http://commons.apache.org/configuration .
 
-AppConfig is designed to provide painless multi-environment, external and internal configuration with default settings for components and programs.
-
 ### Using AppConfig in code
 
 #### Initialize AppConfig
