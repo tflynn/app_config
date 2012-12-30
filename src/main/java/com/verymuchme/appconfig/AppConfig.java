@@ -49,7 +49,7 @@ public class AppConfig {
   /*
    * Logger instance
    */
-  private static final Logger logger = LoggerFactory.getLogger(AppConfig.class);
+  private static Logger logger = null;
   
   /*
    * Configuration options
@@ -91,7 +91,7 @@ public class AppConfig {
    */
   private ConfigurationHelper configurationHelper = new ConfigurationHelper();
   
-  /**
+ /**
    * Create a new AppConfig instance
    */
   public AppConfig() {
@@ -128,10 +128,25 @@ public class AppConfig {
     
     // Configure logging using internal defaults. Allow override for initial logging level
     String logLevelOverride = (String) this.configurationHelper.getSettingFromOptionsEnvSystem(InternalConfigurationConstants.DEFAULT_BOOTSTRAP_LOGGING_LEVEL_PROPERTY_NAME, this.options);
-    this.loggingHelper.bootstrapInternalLogging(logLevelOverride);
-    logger.trace(String.format("AppConfig.configure Added bootstrap internal logging"));
+    BootstrapLogger bootstrapLogger = new BootstrapLogger();
+    bootstrapLogger.configureDynamically(logLevelOverride);
     
+    // Use the bootstrap logger until the internal logger is fully configured
+    AppConfig.setActiveLogger(bootstrapLogger);
+    AppConfigUtils.setActiveLogger(bootstrapLogger);
+    ConfigurationHelper.setActiveLogger(bootstrapLogger);
+    ExtendedProperties.setActiveLogger(bootstrapLogger);
+
+    logger.trace(String.format("AppConfig.configure Added bootstrap internal logging"));
+
     // Get internal properties - full defaulting rules applied - first found wins - options, system properties, environment variables, defaults
+    // Make sure to pass the values from the convenience accessors
+    this.options.put(InternalConfigurationConstants.APPLICATION_PROPERTIES_PACKAGE_NAME_PROPERTY_NAME, this.applicationPropertiesPackageName);
+    this.options.put(InternalConfigurationConstants.EXTERNAL_CONFIGURATION_DIRECTORY_PROPERTY_NAME,this.externalConfigurationDirectory);
+    if (this.applicationPropertiesPackageName != null) {
+      String packageDir = this.applicationPropertiesPackageName.replaceAll("\\.", "/");
+      this.options.put(InternalConfigurationConstants.APPLICATION_PROPERTIES_PACKAGE_DIR_PROPERTY_NAME, packageDir);
+    }
     this.internalProperties = this.configurationHelper.loadInternalProperties(this.options);
 
     // Make sure the runtime environment is set
@@ -139,22 +154,22 @@ public class AppConfig {
 
     if (logger.isTraceEnabled()) {
       logger.trace(String.format("AppConfig.configure runtime options and internal properties"));
-      AppConfigUtils.dumpProperties(this.internalProperties);
+      this.internalProperties.dumpProperties();
     }
     
     // Load the real internal logger configuration
     String loggingConfigurationFileName = internalProperties.getProperty(InternalConfigurationConstants.INTERNAL_LOGGING_CONFIGURATION_FILE_PROPERTY_NAME);
     String loggingLevel = internalProperties.getProperty(InternalConfigurationConstants.DEFAULT_LOGGING_LEVEL_PROPERTY_NAME);
-    this.loggingHelper.configureLoggerFromConfigurationFile(loggingConfigurationFileName,loggingLevel);
+    this.loggingHelper.configureLoggerFromConfigurationFile(loggingConfigurationFileName,loggingLevel,bootstrapLogger);
+    this.loggingHelper.overrideLogLevel(this.getClass().getPackage().getName(), loggingLevel);
+
+    // Reset the active logger to the default value in various places
+    AppConfig.setActiveLogger();
+    AppConfigUtils.setActiveLogger();
+    ConfigurationHelper.setActiveLogger();
+    ExtendedProperties.setActiveLogger();
 
     // Generate the configuration
-    // Make sure to pass the values from the convenience accessors
-    this.options.put(ConfigurationDefinitionBuilder.APPLICATION_PROPERTIES_PACKAGE_NAME_PROPERTY_NAME, this.applicationPropertiesPackageName);
-    this.options.put(ConfigurationDefinitionBuilder.EXTERNAL_CONFIGURATION_DIRECTORY_PROPERTY_NAME,this.externalConfigurationDirectory);
-    if (this.applicationPropertiesPackageName != null) {
-      String packageDir = this.applicationPropertiesPackageName.replaceAll("\\.", "/");
-      this.options.put(InternalConfigurationConstants.APPLICATION_PROPERTIES_PACKAGE_DIR_PROPERTY_NAME, packageDir);
-    }
     // Get a ConfigurationBuilder
     if (this.configurationBuilder == null) {
       this.configurationBuilder = ConfigurationBuilderFactory.instance(this.internalProperties);
@@ -165,21 +180,11 @@ public class AppConfig {
 
     logger.trace(String.format("AppConfig.configure Generated configuration definitions"));
 
-    /*
-    // Now generate the actual configuration
-    String configurationDefinition = configurationBuilder.generateConfigurationDefinition();
-
-    logger.trace(String.format("AppConfig.configure Generated configuration definitions"));
-    
     // Configure application-level logging
-    List<String> log4jConfigNames = configurationBuilder.generateLog4jConfigurationNames();
-    Log4jHelper.loadLog4jConfiguration(log4jConfigNames, logger);
+    List<String> applictionLoggerConfigurationFileNames = this.configurationHelper.generateLoggingConfigurationNames(this.internalProperties);
+    this.loggingHelper.configureLoggerFromConfigurationFiles(applictionLoggerConfigurationFileNames);
     logger.trace(String.format("AppConfig.configure loaded application logging"));
-
-    // Add internal properties into the application properties
-    configurationBuilder.addInternalProperties(this.combinedConfiguration);
     
-    */
   }
   
   
@@ -264,5 +269,21 @@ public class AppConfig {
      return this.configuration;
    }
 
+   /**
+    * Set the active logger for this class
+    */
+   public static void setActiveLogger() {
+     setActiveLogger(null);
+   }
    
+   /**
+    * Set the active logger for this class
+    * 
+    * @param activeLogger
+    */
+   public static void setActiveLogger(Logger activeLogger) {
+     logger = activeLogger == null ? LoggerFactory.getLogger(AppConfig.class) : activeLogger;
+   }
+   
+  
 }

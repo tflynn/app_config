@@ -52,8 +52,7 @@ public class ConfigurationBuilderFactory {
     }
     try {
       Class configurationBuilderClass = Class.forName(configurationBuilderClassName);
-      Constructor constructor = configurationBuilderClass.getConstructor();
-      configurationBuilderInstance = (ConfigurationBuilder) constructor.newInstance();
+      configurationBuilderInstance = (ConfigurationBuilder) configurationBuilderClass.newInstance();
     }
     catch (Exception e) {
       configurationBuilderInstance = NullConfigurationBuilder.INSTANCE;

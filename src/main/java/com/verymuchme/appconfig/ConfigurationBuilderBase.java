@@ -14,6 +14,8 @@
  */
 package com.verymuchme.appconfig;
 
+import java.util.Iterator;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,6 +34,12 @@ public class ConfigurationBuilderBase {
   private static final Logger logger = LoggerFactory.getLogger(ConfigurationBuilderBase.class);
 
   /*
+   * Local copy of last configuration generated
+   */
+  protected Configuration configuration = null;
+  
+
+  /*
    * Internal defaults
    */
   protected ExtendedProperties internalProperties = null;
@@ -40,4 +48,17 @@ public class ConfigurationBuilderBase {
     this.internalProperties= internalProperties;
   }
 
+  /**
+  * Add internal settings to configuration object - e.g. allow access to current runtime environment (com.verymuchme.appconfig.runTimeEnvironment)
+  *  */
+  protected void addInternalProperties() {
+    Iterator<String> propertyNames = this.internalProperties.propertyNames();
+    while (propertyNames.hasNext()) {
+      String propertyName = propertyNames.next();
+      Object propertyValue = this.internalProperties.get(propertyName);
+      configuration.addProperty(propertyName,propertyValue);
+    }
+  }
+
+  
 }

@@ -16,6 +16,7 @@ package com.verymuchme.appconfig;
 
 import java.io.PrintStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -38,13 +39,12 @@ public class AppConfigUtils {
   /*
    * Logger instance for this class
    */
-  private static final Logger logger = LoggerFactory.getLogger(AppConfigUtils.class);
+  private static Logger logger = null;
 
   public static final String DEFAULT_LIST_SEPARATOR = ",";
   
   public static final String STRING_VALUE_NULL = "null";
-  
-  
+
   /**
    * Get a string as a boolean. 
    * Returns the value true if the string argument is not null and is equal, ignoring case, to the string "true". 
@@ -159,7 +159,7 @@ public class AppConfigUtils {
       stringValue = objectValue.toString();
     }
     catch (Exception e) {
-      logger.warn("AppConfig.AppConfigUtils.getStringValue error converting object to string value");
+      //logger.warn("AppConfig.AppConfigUtils.getStringValue error converting object to string value");
       stringValue = "";
     }
     return stringValue;
@@ -208,9 +208,13 @@ public class AppConfigUtils {
    */
   public static void dumpMap(HashMap<String,String> map, PrintStream out) {
     String lineTerm = System.getProperty("line.separator");
+    ArrayList<String> keys = new ArrayList<String>();
     Iterator<String> it = map.keySet().iterator();
     while (it.hasNext()) {
-      String currentKey = it.next();
+      keys.add(it.next());
+    }
+    Collections.sort(keys);
+    for (String currentKey : keys) {
       String currentValue = map.get(currentKey);
       out.print(String.format("%s=%s%s",currentKey,currentValue,lineTerm));
     }
@@ -234,12 +238,35 @@ public class AppConfigUtils {
   @SuppressWarnings("unchecked")
   public static void dumpMapGeneric(Map<Object,Object> map, PrintStream out) {
     String lineTerm = System.getProperty("line.separator");
+    
+    ArrayList<String> keys = new ArrayList<String>();
     Iterator<Object> it = map.keySet().iterator();
     while (it.hasNext()) {
-      String currentKey = it.next().toString();
+      keys.add(it.next().toString());
+    }
+    Collections.sort(keys);
+    for (String currentKey : keys) {
       String currentValue = map.get(currentKey).toString();
       out.print(String.format("%s=%s%s",currentKey,currentValue,lineTerm));
     }
+    
   }
   
+  /**
+   * Set the active logger for this class
+   */
+  public static void setActiveLogger() {
+    setActiveLogger(null);
+  }
+  
+  /**
+   * Set the active logger for this class
+   * 
+   * @param activeLogger
+   */
+  public static void setActiveLogger(Logger activeLogger) {
+    logger = activeLogger == null ? LoggerFactory.getLogger(AppConfigUtils.class) : activeLogger;
+  }
+  
+
 }

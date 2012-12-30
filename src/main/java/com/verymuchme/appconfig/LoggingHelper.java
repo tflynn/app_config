@@ -29,36 +29,52 @@ public interface LoggingHelper {
    * @param loggingLevelString Log level as a string - Logging implementation specific
    */
   public void bootstrapInternalLogging(String loggingLevelString);
+
+  /**
+   * Configure a logger for bootstrap purposes. No external settings are available at this point
+   * 
+   * @param loggerName Name of logger to bootstrap
+   * @param loggingLevelString Log level as a string - Logging implementation specific
+   */
+  public void bootstrapInternalLogging(String loggerName,String loggingLevelString);
+  
   
   /**
    * Quieten the loggers associated with a list of package names. Defaults to ERROR level if logLevelString is not specified
    * 
-   * @param packageNames List of package names (as strings)
+   * @param loggerNames List of logger names (as strings)
    */
-  public void quietLoggingInitializationMessages(List<String> packageNames);
+  public void quietLoggingInitializationMessages(List<String> loggerNames);
   
   /**
-   * Quieten the loggers associated with a list of package names. Defaults to ERROR level if logLevelString is not specified
+   * Quieten the loggers associated with a list of logger names. Defaults to ERROR level if logLevelString is not specified
    * 
-   * @param packageNames List of package names (as strings)
+   * @param loggerNames List of logger names (as strings)
    * @param logLevelString Log level as a string to set logger to. Defaults to "ERROR".
    */
-  public void quietLoggingInitializationMessages(List<String> packageNames, String logLevelString);
+  public void quietLoggingInitializationMessages(List<String> loggerNames, String logLevelString);
   
   /**
-   * Quieten the loggers associated with a package names. Defaults to ERROR level if logLevelString is not specified
+   * Quieten the loggers associated with a logger names. Defaults to ERROR level if logLevelString is not specified
    * 
-   * @param packageName Package name (as strings)
+   * @param loggerName Package name (as strings)
    */
-  public void quietLoggingInitializationMessages(String packageName);
+  public void quietLoggingInitializationMessages(String loggerName);
   
   /**
-   * Quieten the loggers associated with a package names. Defaults to ERROR level if logLevelString is not specified
+   * Quieten the loggers associated with a logger name. Defaults to ERROR level if logLevelString is not specified
    * 
-   * @param packageName Package name (as strings)
+   * @param loggerName Logger name (as strings)
    * @param logLevelString Log level as a string to set logger to. Defaults to "ERROR".
    */
-  public void quietLoggingInitializationMessages(String packageName, String logLevelString);
+  public void quietLoggingInitializationMessages(String loggerName, String logLevelString);
+
+  /**
+   * Create loggers from the specified configuration files
+   * 
+   * @param loggingConfigurationFileNames
+   */
+  public void configureLoggerFromConfigurationFiles(List<String> loggingConfigurationFileNames);
 
   /**
    * Create a logger from the specified configuration file name with the specified logging level as an override
@@ -69,4 +85,21 @@ public interface LoggingHelper {
   public void configureLoggerFromConfigurationFile(String loggingConfigurationFileName, String loggingLevel);
   
   
+  /**
+   * Create a logger from the specified configuration file name with the specified logging level as an override. 
+   * Use the specified logger to log any error messages
+   * 
+   * @param loggingConfigurationFileName
+   * @param loggingLevel
+   * @param activeLogger logger to use for logging until logging is configured for the specified logger. Null indicates no override
+   */
+  public void configureLoggerFromConfigurationFile(String loggingConfigurationFileName, String loggingLevel, org.slf4j.Logger activeLogger);
+  
+  /**
+   * Override logging level for specified logger
+   * 
+   * @param loggerName Name of logger
+   * @param loggingLevel Logging level
+   */
+  public void overrideLogLevel(String loggerName, String loggingLevel);
 }

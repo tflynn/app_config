@@ -87,7 +87,7 @@ public class FreemarkerHandler {
   public String getTemplate(String templateName, HashMap data) {
     
     if (templateName == null) {
-      templateName = internalProperties.getProperty(ConfigurationDefinitionBuilder.DEFAULT_FREEMARKER_CONFIGURATION_TEMPLATE_PROPERTY_NAME);
+      templateName = internalProperties.getProperty(InternalConfigurationConstants.DEFAULT_FREEMARKER_CONFIGURATION_TEMPLATE_PROPERTY_NAME);
     }
     
     Template template = null;

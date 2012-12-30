@@ -30,6 +30,7 @@ import static org.mockito.Mockito.*;
 import static org.junit.Assert.*;
 
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -37,7 +38,7 @@ import org.slf4j.LoggerFactory;
 
 public class AppConfigTest {
 
-  private static final Logger logger = LoggerFactory.getLogger(AppConfigTest.class);
+  private static TestLogger logger = null;
   
 
   private static final String RUNTIME_ENVIRONMENT = "test";
@@ -45,47 +46,53 @@ public class AppConfigTest {
   
   private Options runtimeOptions = null;
   
+  private static boolean internalLoggingIntiialized = false;
+  private static boolean loggersQuietened = false;
+  
+  public AppConfigTest() {
+    initializeTestLogger();
+    logger.trace("AppConfigTest()");
+    quietLoggers();
+  }
+  
+  private void quietLoggers() {
+    if (! loggersQuietened) {
+      logger.trace("AppConfigTest.quietLoggers start");
+      LoggingHelper loggingHelper = LoggingHelperFactory.instance();
+      loggingHelper.quietLoggingInitializationMessages("freemarker");
+      loggingHelper.quietLoggingInitializationMessages("org.apache.commons.configuration");
+      logger.trace("AppConfigTest.quietLoggers end");
+      loggersQuietened = true;
+    }
+  }
+  
   @Before
-  public void quietLoggers() {
-    LoggingHelper loggingHelper = LoggingHelperFactory.instance();
-    loggingHelper.quietLoggingInitializationMessages("freemarker");
+  public void setOptions() {
+    logger.trace("AppConfigTest.setOptions start");
     runtimeOptions = new Options();
     runtimeOptions.setProperty(InternalConfigurationConstants.RUN_TIME_ENVIRONMENT_PROPERTY_NAME,RUNTIME_ENVIRONMENT);
     runtimeOptions.setProperty(InternalConfigurationConstants.DEFAULT_LOGGING_LEVEL_PROPERTY_NAME,INTERNAL_LOGGING_LEVEL);
-  }
-  
-  @Test
-  public void verifyInternalBootstrapLoggingInitializedToCorrectLevel() {
-    
-    LoggingHelper mockLoggingHelper = mock(LoggingHelper.class);
-    AppConfig appConfig = null;
-    
-    appConfig = new AppConfig();
-    appConfig.setLoggingHelper(mockLoggingHelper);
-    appConfig.configure();
-    verify(mockLoggingHelper).bootstrapInternalLogging(null);
-    
-    appConfig = new AppConfig();
-    appConfig.setLoggingHelper(mockLoggingHelper);
-    appConfig.setOptions(runtimeOptions);
-    appConfig.configure();
-    verify(mockLoggingHelper).bootstrapInternalLogging(INTERNAL_LOGGING_LEVEL);
-    
+    logger.trace("AppConfigTest.setOptions end");
   }
   
   @Test
   public void verifyInternalBootstrapLoggingInitialized() {
+    logger.trace("AppConfigTest.verifyInternalBootstrapLoggingInitialized start");
     AppConfig appConfig = new AppConfig();
     appConfig.configure();
+    logger.trace("AppConfigTest.verifyInternalBootstrapLoggingInitialized end");
+    assertTrue(true);
   }
   
   @Test
   public void testConfigureInternalOnly() {
-    
+    logger.trace("AppConfigTest.testConfigureInternalOnly start");
+    boolean success = false;
+
     //Case 1 optional files present, defaults not present - should generate an error
     logger.trace("AppConfigTest.testConfigureInternalOnly.case1 starting");
     String packageName1 = "com.verymuchme.appconfig.test.internalOnly.case1";
-    boolean success = false;
+    success = false;
     try {
       AppConfig appConfig = new AppConfig();
       appConfig.setApplicationPropertiesPackageName(packageName1);
@@ -100,7 +107,7 @@ public class AppConfigTest {
     if (logger.isTraceEnabled()) {
       logger.trace(String.format("AppConfigTest.testConfigureInternalOnly.case1 %s", success ? "passed" : "failed"));
     }
-    
+
     //Case 2 optional files present, defaults presents - check overridden values
     logger.trace("AppConfigTest.testConfigureInternalOnly.case2 starting");
     String packageName2 = "com.verymuchme.appconfig.test.internalOnly.case2";
@@ -118,6 +125,7 @@ public class AppConfigTest {
       
     }
     catch (Exception e) {
+      logger.debug(String.format("AppConfigTest.testConfigureInternalOnly error testing case 2"),e);
       success = false;
     }
     assertTrue(success);
@@ -126,13 +134,15 @@ public class AppConfigTest {
       logger.trace(String.format("AppConfigTest.testConfigureInternalOnly.case2 %s", success ? "passed" : "failed"));
     }
     
+    logger.trace("AppConfigTest.testConfigureInternalOnly end");
+    
   }
   
   
   @Test
   public void testConfigureExternal() {
 
-    logger.trace("AppConfigTest.testConfigureExternal starting");
+    logger.trace("AppConfigTest.testConfigureExternal start");
 
     String tempDirName = getTemporaryDir();
     File tempDir = new File(tempDirName);
@@ -176,12 +186,16 @@ public class AppConfigTest {
     if (logger.isTraceEnabled()) {
       logger.trace(String.format("AppConfigTest.testConfigureExternal finished and %s", success ? "passed" : "failed"));
     }
-    
+
+    logger.trace("AppConfigTest.testConfigureExternal end");
+
     
   }
   
   @Test
   public void testAdditionOfInternalProperties() {
+    
+    logger.trace("AppConfigTest.testAdditionOfInternalProperties start");
     
     //Case optional files present, defaults presents
     logger.trace("AppConfigTest.testAdditionOfInternalProperties.starting");
@@ -193,12 +207,12 @@ public class AppConfigTest {
       appConfig.setOptions(this.runtimeOptions);
       appConfig.configure();
       Configuration configuration = appConfig.getConfiguration();
-      assertEquals(String.format("AppConfigTest.testAdditionOfInternalProperties Runtime environment available and is %s",RUNTIME_ENVIRONMENT), RUNTIME_ENVIRONMENT, configuration.getString(ConfigurationDefinitionBuilder.RUN_TIME_ENVIRONMENT_PROPERTY_NAME));
-      assertEquals(String.format("AppConfigTest.testAdditionOfInternalProperties External directory is not specified"), null, configuration.getString(ConfigurationDefinitionBuilder.EXTERNAL_CONFIGURATION_DIRECTORY_PROPERTY_NAME));
-      assertEquals(String.format("AppConfigTest.testAdditionOfInternalProperties System properties override is false"), Boolean.FALSE, configuration.getBoolean(ConfigurationDefinitionBuilder.SYSTEM_PROPERTIES_OVERRIDE_PROPERTY_NAME));
+      assertEquals(String.format("AppConfigTest.testAdditionOfInternalProperties Runtime environment available and is %s",RUNTIME_ENVIRONMENT), RUNTIME_ENVIRONMENT, configuration.getString(InternalConfigurationConstants.RUN_TIME_ENVIRONMENT_PROPERTY_NAME));
+      assertEquals(String.format("AppConfigTest.testAdditionOfInternalProperties External directory is not specified"), null, configuration.getString(InternalConfigurationConstants.EXTERNAL_CONFIGURATION_DIRECTORY_PROPERTY_NAME));
+      assertEquals(String.format("AppConfigTest.testAdditionOfInternalProperties System properties override is false"), Boolean.FALSE, configuration.getBoolean(InternalConfigurationConstants.SYSTEM_PROPERTIES_OVERRIDE_PROPERTY_NAME));
       ArrayList<String> expectedDefaultEnvironments = new ArrayList<String>(Arrays.asList("development","production","test"));
       assertEquals(String.format("AppConfigTest.testAdditionOfInternalProperties default runtime environments are \"development\",\"production\",\"test\""),expectedDefaultEnvironments,
-            (ArrayList<String>) configuration.getProperty(ConfigurationDefinitionBuilder.PERMITTED_RUN_TIME_ENVIRONMENTS_PROPERTY_NAME) );
+            (ArrayList<String>) configuration.getProperty(InternalConfigurationConstants.PERMITTED_RUN_TIME_ENVIRONMENTS_PROPERTY_NAME) );
     }
     catch (Exception e) {
       logger.trace(String.format("AppConfigTest.testAdditionOfInternalProperties error %s",e.getMessage()),e);
@@ -208,6 +222,7 @@ public class AppConfigTest {
 
     logger.trace(String.format("AppConfigTest.testAdditionOfInternalProperties %s", success ? "passed" : "failed"));
 
+    logger.trace("AppConfigTest.testAdditionOfInternalProperties end");
     
   }
   
@@ -262,4 +277,19 @@ public class AppConfigTest {
     }
     return externalFiles;
   }
+
+  /*
+   * Lazy initializer for test logger
+   */
+  private static void initializeTestLogger() {
+    if (!internalLoggingIntiialized) {
+      //announceStart("AppConfigTest.initializer");
+      logger = new TestLogger();
+      logger.configureDynamically(INTERNAL_LOGGING_LEVEL);
+      //announceEnd("AppConfigTest.initializer");
+      internalLoggingIntiialized = true;
+    }
+  }
+
+
 }

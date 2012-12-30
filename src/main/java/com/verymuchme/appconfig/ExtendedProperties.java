@@ -14,100 +14,84 @@
  */
 package com.verymuchme.appconfig;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.io.PrintStream;
-import java.io.Reader;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Enumeration;
-import java.util.Map;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Properties;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Optional;
+
 /**
- * Wrao standard Properties object with a few convenience features
+ * Manage internal properties settings
  * 
  * @author Tracy Flynn
  * @version 2.0
  * @since 2.0
  * 
  */
-public class ExtendedProperties extends Properties {
+//public class ExtendedProperties extends Properties {
+public class ExtendedProperties {
 
   /*
    * Logger instance
    */
-  private static final Logger logger = LoggerFactory.getLogger(ExtendedProperties.class);
+  private static Logger logger = null;
 
+  /*
+   * Internal properties storage
+   */
+  private HashMap<String,ExtendedPropertiesEntry> internalProperties = new HashMap<String,ExtendedPropertiesEntry>();
+  
+  
+  private static final String TYPE_STRING = "String";
+  private static final String TYPE_BOOLEAN = "Boolean";
+  private static final String TYPE_OBJECT = "Object";
+  private static final String TYPE_ARRAYLIST = "ArrayList";
+  private static final String TYPE_ARRAYLIST_STRING = "ArrayListString";
+  
+  
   /**
    * Creates an empty property list with no default values.
    */
   public ExtendedProperties() {
-    super();
+  }
+
+  /**
+   * Get value of a property as a String value
+   * 
+   * @param key Property name
+   * 
+   * @return String value or null if not a string, or property is null
+   */
+  public String getProperty(String key) {
+    ExtendedPropertiesEntry extendedPropertiesEntry = internalProperties.get(key);
+    String returnVal = null;
+    if (extendedPropertiesEntry != null) {
+      Object entryValue = extendedPropertiesEntry.getEntryValue();
+      if (entryValue != null) {
+        if (extendedPropertiesEntry.getTargetType().equals(ExtendedPropertiesEntry.TYPE_STRING)) {
+          returnVal = (String) entryValue;
+        }
+      }
+    }
+    return returnVal;
   }
   
   /**
-   * Creates an empty property list with the specified defaults.
+   * Set value of a property as a String
    * 
-   * @param defaults
+   * @param propertyName Property Name
+   * @param propertyValue Property Value
    */
-  public ExtendedProperties(Properties defaults) {
-    super(defaults);
-  }
-  
-  /*
-   * Convert properties using extended syntax for values to objects as needed 
-   */
-  public void convertProperties() {
-    Properties replacementProperties = new Properties();
-    @SuppressWarnings("unchecked")
-    Enumeration<String> propertyNames = (Enumeration<String>) this.propertyNames();
-    while (propertyNames.hasMoreElements()) {
-      Object propertyValue = NullObject.INSTANCE;
-      String propertyName = propertyNames.nextElement();
-      String rawPropertyValue = this.getProperty(propertyName);
-      if (rawPropertyValue == null) {
-        propertyValue = NullObject.INSTANCE;
-      }
-      else if (AppConfigUtils.isNullStringValue(rawPropertyValue)) {
-        propertyValue = NullObject.INSTANCE;
-      }
-      else if (AppConfigUtils.isListValue(rawPropertyValue)) {
-        propertyValue = AppConfigUtils.getListValue(rawPropertyValue);
-      }
-      else if (AppConfigUtils.isBooleanValue(rawPropertyValue)) {
-        propertyValue = AppConfigUtils.getBooleanValue(rawPropertyValue);
-      }
-      else {
-        propertyValue = rawPropertyValue;
-      }
-      try {
-        if (propertyValue == NullObject.INSTANCE) {
-          logger.trace(String.format("AppConfig.ExtendedProperties.convertProperties found a property without a value %s",propertyName));
-        }
-        replacementProperties.put(propertyName,propertyValue);
-      }
-      catch (Exception e) {
-        String errorMsg = String.format("AppConfig.ExtendedProperties.convertProperties error");
-        logger.trace(errorMsg,e);
-        throw new AppConfigException(errorMsg,e);
-      }
-    }
-    // Replace all properties with the converted properties
-    this.putAll(replacementProperties);
-  }
-
-  @Override
-  public String getProperty(String key) {
-    Object oVal = super.get(key);
-    if (oVal == null || oVal == NullObject.INSTANCE) {
-      return null;
-    }
-    else {
-      return super.getProperty(key);
-    }
+  public void setProperty(String propertyName, String propertyValue) {
+    put(propertyName, propertyValue);
   }
   
   /**
@@ -119,30 +103,19 @@ public class ExtendedProperties extends Properties {
    * @return true or false
    */
   public boolean getBooleanProperty(String key) {
-    if (this.get(key) == NullObject.INSTANCE) {
-      return false;
+    ExtendedPropertiesEntry extendedPropertiesEntry = internalProperties.get(key);
+    boolean returnVal = false;
+    if (extendedPropertiesEntry != null) {
+      Object entryValue = extendedPropertiesEntry.getEntryValue();
+      if (entryValue != null) {
+        if (extendedPropertiesEntry.getTargetType().equals(ExtendedPropertiesEntry.TYPE_BOOLEAN)) {
+          returnVal = ((Boolean) entryValue).booleanValue();
+        }
+      }
     }
-    else {
-      return AppConfigUtils.getBooleanValue(getProperty(key));
-    }
+    return returnVal;
   }
   
-  /**
-   * Get a property as a null value.
-   * Returns the value null either if the property is undefined or if the property argument is not null and is equal, ignoring case, to the string "null".
-   * Returns the value otherwise.
-   * 
-   * @param key Property name
-   * @return the value or null
-   */
-  public String getNullProperty(String key) {
-    if (this.get(key) == NullObject.INSTANCE) {
-      return null;
-    }
-    else {
-      return AppConfigUtils.getNullValue(getProperty(key));
-    }
-  }
   
   /**
    * Get a property as an ArrayList<String>. Uses ',' as the default separator. 
@@ -151,32 +124,233 @@ public class ExtendedProperties extends Properties {
    * 
    * @return Array of string values, or null if no property present
    */
-  @SuppressWarnings("unchecked")
   public ArrayList<String> getListProperty(String key) {
-    if (this.get(key) == NullObject.INSTANCE) {
-      return null;
+    ExtendedPropertiesEntry extendedPropertiesEntry = internalProperties.get(key);
+    ArrayList<String> returnVal = null;
+    if (extendedPropertiesEntry != null) {
+      Object entryValue = extendedPropertiesEntry.getEntryValue();
+      if (entryValue != null) {
+        if (extendedPropertiesEntry.getTargetType().equals(ExtendedPropertiesEntry.TYPE_ARRAY_LIST_STRING)) {
+          returnVal = (ArrayList<String>) entryValue;
+        }
+      }
     }
-    else {
-      return (ArrayList<String>) this.get(key);
+    return returnVal;
+  }
+  
+  /**
+   * Get a property as an object value
+   * 
+   * @param key Property name
+   * @return Property value as an object, or null if no entry
+   */
+  public Object get(String key) {
+    ExtendedPropertiesEntry extendedPropertiesEntry = internalProperties.get(key);
+    Object returnValue = null;
+    if (extendedPropertiesEntry != null) {
+      returnValue = extendedPropertiesEntry.getEntryValue();
+    }
+    return returnValue;
+  }
+  
+  /**
+   * Get the property names for the internal properties
+   * 
+   * @return Iterator over property names
+   */
+  public Iterator<String> propertyNames() {
+    Set<String> propertyNamesSet = this.internalProperties.keySet();
+    return propertyNamesSet.iterator();
+  }
+
+  /**
+   * Store a property name and value
+   * 
+   * @param propertyName
+   * @param propertyValue
+   */
+  public void put(String propertyName, Object propertyValue) {
+    ExtendedPropertiesEntry extendedPropertiesEntry = convertObjectToEntry(propertyName,propertyValue);
+    internalProperties.put(propertyName, extendedPropertiesEntry);
+  }
+  
+  /**
+   * Load all the properties in the specified properties instance. Assumes all property keys and values are strings
+   * 
+   * @param properties Properties instance
+   */
+  public void loadStringProperties(Properties properties) {
+    Set<String> propertyNamesSet = properties.stringPropertyNames();
+    Iterator<String> propertyNames = propertyNamesSet.iterator();
+    while(propertyNames.hasNext()) {
+      String propertyName = propertyNames.next();
+      String propertyValueString = properties.getProperty(propertyName);
+      ExtendedPropertiesEntry extendedPropertiesEntry = convertToEntry(propertyName,propertyValueString);
+      internalProperties.put(propertyName, extendedPropertiesEntry);
     }
   }
   
   /**
-   * Get a property as a String value. Return null if unable to convert property to string
+   * Convert a property value to an ExtendedPropertiesEntry
    * 
-   * @param key Property name
+   * @param propertyName Property name
+   * @param propertyValueString Property value as a String
    * 
-   * @return Object as string value or null if conversion failed
+   * @return ExtendedPropertiesEntry instance
+   * 
    */
-  public String getStringProperty(String key) {
-    if (this.get(key) == NullObject.INSTANCE) {
-      return null;
+  public ExtendedPropertiesEntry convertToEntry(String propertyName, String propertyValueString) {
+    ExtendedPropertiesEntry entry = new ExtendedPropertiesEntry();
+    entry.setEntryName(propertyName);
+    if (propertyValueString == null) {
+      entry.setEntryValue(null);
+      entry.setTargetType(ExtendedPropertiesEntry.TYPE_STRING);
+    }
+    else if (propertyValueString == "") {
+      entry.setEntryValue(null);
+      entry.setTargetType(ExtendedPropertiesEntry.TYPE_STRING);
+    }
+    else if (AppConfigUtils.isNullStringValue(propertyValueString)) {
+      entry.setEntryValue(null);
+      entry.setTargetType(ExtendedPropertiesEntry.TYPE_STRING);
+    }
+    else if (AppConfigUtils.isListValue(propertyValueString)) {
+      entry.setEntryValue(AppConfigUtils.getListValue(propertyValueString));
+      entry.setTargetType(ExtendedPropertiesEntry.TYPE_ARRAY_LIST_STRING);
+    }
+    else if (AppConfigUtils.isBooleanValue(propertyValueString)) {
+      entry.setEntryValue(AppConfigUtils.getBooleanValue(propertyValueString));
+      entry.setTargetType(ExtendedPropertiesEntry.TYPE_BOOLEAN);
     }
     else {
-      String returnString = AppConfigUtils.getStringValue(getProperty(key));
-      return returnString == "" ? null : returnString;
+      entry.setEntryValue(propertyValueString);
+      entry.setTargetType(ExtendedPropertiesEntry.TYPE_STRING);
+    }
+    return entry;
+  }
+
+  /**
+   * Convert a property value to an ExtendedPropertiesEntry
+   * 
+   * @param propertyName Property name
+   * @param propertyValueString Property value as an object
+   * 
+   * @return ExtendedPropertiesEntry instance
+   * 
+   */
+  public ExtendedPropertiesEntry convertObjectToEntry(String propertyName, Object propertyValue) {
+    ExtendedPropertiesEntry entry = new ExtendedPropertiesEntry();
+    entry.setEntryName(propertyName);
+    String propertyType = TYPE_OBJECT;
+    if (propertyValue instanceof String) {
+      propertyType = TYPE_STRING;
+    }
+    else if (propertyValue instanceof Boolean) {
+      propertyType = TYPE_BOOLEAN;
+    }
+    else if (propertyValue instanceof ArrayList) {
+      propertyType = TYPE_ARRAYLIST;
+      ArrayList arrList = (ArrayList) propertyValue;
+      if (! (arrList.isEmpty())) {
+        Object arrListValue = arrList.get(0);
+        if (arrListValue instanceof String) {
+          propertyType = TYPE_ARRAYLIST_STRING;
+        }
+      }
+    }
+    if (propertyValue == null) {
+      entry.setEntryValue(null);
+      entry.setTargetType(ExtendedPropertiesEntry.TYPE_OBJECT);
+    }
+    else if (propertyType == TYPE_STRING && "".equals((String) propertyValue)) {
+      entry.setEntryValue(null);
+      entry.setTargetType(ExtendedPropertiesEntry.TYPE_STRING);
+    }
+    else if (propertyType == TYPE_STRING  && AppConfigUtils.isNullStringValue((String) propertyValue)) {
+      entry.setEntryValue(null);
+      entry.setTargetType(ExtendedPropertiesEntry.TYPE_STRING);
+    }
+    else if (propertyType == TYPE_STRING && AppConfigUtils.isListValue((String) propertyValue)) {
+      entry.setEntryValue(AppConfigUtils.getListValue((String) propertyValue));
+      entry.setTargetType(ExtendedPropertiesEntry.TYPE_ARRAY_LIST_STRING);
+    }
+    else if (propertyType == TYPE_STRING && AppConfigUtils.isBooleanValue((String) propertyValue)) {
+      entry.setEntryValue(AppConfigUtils.getBooleanValue((String) propertyValue));
+      entry.setTargetType(ExtendedPropertiesEntry.TYPE_BOOLEAN);
+    }
+    else if (propertyType == TYPE_STRING) {
+      entry.setEntryValue((String) propertyValue);
+      entry.setTargetType(ExtendedPropertiesEntry.TYPE_STRING);
+    }
+    else if (propertyType == TYPE_BOOLEAN) {
+      entry.setEntryValue(propertyValue);
+      entry.setTargetType(ExtendedPropertiesEntry.TYPE_BOOLEAN);
+    }
+    else if (propertyType == TYPE_ARRAYLIST_STRING) {
+      entry.setEntryValue(propertyValue);
+      entry.setTargetType(ExtendedPropertiesEntry.TYPE_ARRAY_LIST_STRING);
+    }
+    else if (propertyType == TYPE_ARRAYLIST) {
+      entry.setEntryValue(propertyValue);
+      entry.setTargetType(ExtendedPropertiesEntry.TYPE_ARRAY_LIST);
+    }
+    else {
+      entry.setEntryValue(propertyValue);
+      entry.setTargetType(ExtendedPropertiesEntry.TYPE_OBJECT);
+    }
+    return entry;
+  }
+  
+  
+  /**
+   * Set the active logger for this class
+   */
+  public static void setActiveLogger() {
+    setActiveLogger(null);
+  }
+  
+  /**
+   * Set the active logger for this class
+   * 
+   * @param activeLogger
+   */
+  public static void setActiveLogger(Logger activeLogger) {
+    logger = activeLogger == null ? LoggerFactory.getLogger(ExtendedProperties.class) : activeLogger;
+  }
+  
+  /**
+   * Dump the properties to System.out
+   */
+  public void dumpProperties() {
+    dumpProperties(System.out);
+  }
+
+  /**
+   * Dump the properties to the specified print stream
+   *
+   * @param printStream Print stream
+   */
+  public void dumpProperties(PrintStream printStream) {
+    ArrayList<String> propertyNamesList = new ArrayList<String>();
+    Iterator<String> propertyNamesItr = propertyNames();
+    while (propertyNamesItr.hasNext()) {
+      String propertyName = propertyNamesItr.next();
+      propertyNamesList.add(propertyName);
+    }
+    Collections.sort(propertyNamesList);
+    for (String propertyName : propertyNamesList) {
+      Object propertyValueObject = get(propertyName);
+      String propertyValue = null;
+      if (propertyValueObject == null) {
+        propertyValue = "null value";
+      }
+      else {
+        propertyValue = propertyValueObject.toString();
+      }
+      printStream.println(String.format("%s = %s",propertyName, propertyValue));
     }
   }
+  
   
   
 }

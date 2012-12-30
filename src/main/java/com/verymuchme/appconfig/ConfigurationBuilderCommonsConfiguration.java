@@ -21,12 +21,15 @@ import java.io.FileWriter;
 import java.io.InputStream;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Properties;
 
 import org.apache.commons.configuration.CombinedConfiguration;
 import org.apache.commons.configuration.DefaultConfigurationBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.base.Optional;
 
 /**
  * Dynamically build a configuration definition compatible with Apache Commons Configuration
@@ -54,8 +57,9 @@ public class ConfigurationBuilderCommonsConfiguration extends ConfigurationBuild
   public Configuration buildConfiguration() {
     String configurationDefinition = generateConfigurationDefinition();
     CombinedConfiguration combinedConfiguration = loadConfigurationDefinition(configurationDefinition);
-    Configuration configuration = new ConfigurationCommonsConfiguration(combinedConfiguration);
-    return configuration;
+    this.configuration = new ConfigurationCommonsConfiguration(combinedConfiguration);
+    this.addInternalProperties();
+    return this.configuration;
   }
 
   
@@ -67,11 +71,10 @@ public class ConfigurationBuilderCommonsConfiguration extends ConfigurationBuild
       try {
         //Add all internal properties with appropriate prefixes to template data
         HashMap<String,String> templateData = new HashMap<String,String>();
-        @SuppressWarnings("unchecked")
-        Enumeration<String> propertyNames = (Enumeration<String>) internalProperties.propertyNames();
-        while (propertyNames.hasMoreElements()) {
-          String propertyName = propertyNames.nextElement();
-          String propertyValueString = internalProperties.getStringProperty(propertyName);
+        Iterator<String> propertyNamesItr = internalProperties.propertyNames();
+        while (propertyNamesItr.hasNext()) {
+          String propertyName = propertyNamesItr.next();
+          String propertyValueString = internalProperties.getProperty(propertyName);
           propertyName = propertyName.replace(InternalConfigurationConstants.INTERNAL_PACKAGE_PREFIX_FULL, InternalConfigurationConstants.INTERNAL_PACKAGE_PREFIX_SHORT);
           propertyName = propertyName.replaceAll("\\.", "_");
           templateData.put(propertyName, propertyValueString);
@@ -82,7 +85,7 @@ public class ConfigurationBuilderCommonsConfiguration extends ConfigurationBuild
         }
         
         FreemarkerHandler freemarkerHandler = null;
-        String freemarkerBaseClassName = this.internalProperties.getNullProperty(InternalConfigurationConstants.FREEMARKER_CONFIGURATION_BASE_CLASS_PROPERTY_NAME);
+        String freemarkerBaseClassName = this.internalProperties.getProperty(InternalConfigurationConstants.FREEMARKER_CONFIGURATION_BASE_CLASS_PROPERTY_NAME);
         if (freemarkerBaseClassName == null) {
           freemarkerHandler = new FreemarkerHandler();
         }

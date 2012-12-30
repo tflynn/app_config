@@ -30,7 +30,7 @@ public class LoggingHelperLog4j implements LoggingHelper {
   /*
    * Logger instance
    */
-  private static final Logger logger = LoggerFactory.getLogger(LoggingHelperLog4j.class);
+  private static Logger logger = null;
 
 
   private static final Level DEFAULT_INTERNAL_BOOTSTRAP_LOG_LEVEL = Level.ERROR;
@@ -38,14 +38,22 @@ public class LoggingHelperLog4j implements LoggingHelper {
   
   private static final String DEFAULT_CONSOLE_APPENDER_CLASS = "org.apache.log4j.ConsoleAppender";
   private static final String DEFAULT_LAYOUT_CLASS = "org.apache.log4j.PatternLayout";
-  private static final String DEFAULT_LAYOUT_PATTERN = "[%d{yyyy-MM-dd HH:mm:ss}]   [%-5p]    [%t]  %m %n";
+  private static final String DEFAULT_LAYOUT_PATTERN = "[%d{yyyy-MM-dd HH:mm:ss}]\t\t[%-5p]\t\t[%t:%c{1}]\t%m %n";
+  
   private static final String DEFAULT_APPENDER_NAME = "CONSOLE_APPENDER";
 
-    
+  /**
+   * Create a new instance of the helper
+   */
   public LoggingHelperLog4j(){
     
   }
   
+  /**
+   * Create a new instance of the helper using the specified options
+   * 
+   * @param options
+   */
   public LoggingHelperLog4j(Options options) {
     
   }
@@ -58,36 +66,47 @@ public class LoggingHelperLog4j implements LoggingHelper {
   @Override
   public void bootstrapInternalLogging(String loggingLevel) {
     String internalPackageName = LoggingHelperLog4j.class.getPackage().getName();
-    loadLog4jLogger(internalPackageName,convertToLog4jLevel(loggingLevel,null));
+    bootstrapInternalLogging(internalPackageName,loggingLevel);
+  }
+
+  @Override
+  public void bootstrapInternalLogging( String loggerName, String loggingLevel) {
+    loadLog4jLogger(loggerName,convertToLog4jLevel(loggingLevel,DEFAULT_INTERNAL_BOOTSTRAP_LOG_LEVEL));
   }
 
   
   @Override
-  public void quietLoggingInitializationMessages(List<String> packageNames) {
-    quietLoggingInitializationMessages(packageNames, null);
+  public void quietLoggingInitializationMessages(List<String> loggerNames) {
+    quietLoggingInitializationMessages(loggerNames, null);
   }
 
   @Override
-  public void quietLoggingInitializationMessages(List<String> packageNames, String logLevelString) {
-    for (String packageName : packageNames) {
-      quietLoggingInitializationMessages(packageName,logLevelString);
+  public void quietLoggingInitializationMessages(List<String> loggerNames, String logLevelString) {
+    for (String loggerName : loggerNames) {
+      quietLoggingInitializationMessages(loggerName,logLevelString);
     }
   }
 
   @Override
-  public void quietLoggingInitializationMessages(String packageName) {
-    quietLoggingInitializationMessages(packageName,null);
+  public void quietLoggingInitializationMessages(String loggerName) {
+    quietLoggingInitializationMessages(loggerName,null);
   }
 
   @Override
-  public void quietLoggingInitializationMessages(String packageName, String logLevelString) {
-    loadLog4jLogger(packageName,logLevelString);
+  public void quietLoggingInitializationMessages(String loggerName, String logLevelString) {
+    loadLog4jLogger(loggerName,logLevelString);
   }
   
   @Override
   public void configureLoggerFromConfigurationFile(String loggingConfigurationFileName, String loggingLevel) {
-    loadLog4jConfiguration(loggingConfigurationFileName, loggingLevel);
+    configureLoggerFromConfigurationFile(loggingConfigurationFileName, loggingLevel,LoggerFactory.getLogger(LoggingHelperLog4j.class));
   }
+
+  @Override
+  public void configureLoggerFromConfigurationFile(String loggingConfigurationFileName, String loggingLevel, org.slf4j.Logger activeLogger) {
+    loadLog4jConfiguration(loggingConfigurationFileName, loggingLevel,activeLogger);
+  }
+  
   
   /**
    * Convert a Log4j logging level expressed as a string to a Log4j Level
@@ -102,38 +121,39 @@ public class LoggingHelperLog4j implements LoggingHelper {
   }
   
   /**
-   * Load a log4j logger configuration associated with a specified package name with a specified log level
+   * Load a log4j logger configuration associated with a specified logger name with a specified log level
    * 
-   * @param packageName Name of package to log
+   * @param loggerName Name of logger
    * @param logLevelString Logging level as string
    */
-  private void loadLog4jLogger(String packageName, String logLevelString) {
+  private void loadLog4jLogger(String loggerName, String logLevelString) {
     Level logLevel = convertToLog4jLevel(logLevelString,null);
-    loadLog4jLogger(packageName,logLevel);
+    loadLog4jLogger(loggerName,logLevel);
   }
 
   /**
-   * Load a log4j logger configuration associated with a specified package name with a specified log level
+   * Load a log4j logger configuration associated with a specified logger name with a specified log level
    * 
-   * @param packageName Name of package to log
+   * @param loggerName Name of logger to log
    * @param logLevel Logging error level (log4j style)
    */
-  private void loadLog4jLogger(String packageName, Level logLevel) {
+  private void loadLog4jLogger(String loggerName, Level logLevel) {
     try {
+      
       Properties props = new Properties();
       String logLevelString = logLevel.toString();
-      String baseAppenderName = String.format("log4j.appender.%s",packageName);
+      String baseAppenderName = String.format("log4j.appender.%s",loggerName);
       props.setProperty(String.format("%s.%s",baseAppenderName,DEFAULT_APPENDER_NAME),DEFAULT_CONSOLE_APPENDER_CLASS);
       props.setProperty(String.format("%s.%s.layout",baseAppenderName,DEFAULT_APPENDER_NAME),DEFAULT_LAYOUT_CLASS);
       props.setProperty(String.format("%s.%s.layout.ConversionPattern",baseAppenderName,DEFAULT_APPENDER_NAME),DEFAULT_LAYOUT_PATTERN);
-      String baseLoggerName = String.format("log4j.logger.%s",packageName);
-      props.setProperty(baseLoggerName,String.format("%s, %s.%s",logLevelString,packageName,DEFAULT_APPENDER_NAME));
-      //AppConfigUtils.dumpMap(props);
+      String baseLoggerName = String.format("log4j.logger.%s",loggerName);
+      props.setProperty(baseLoggerName,String.format("%s, %s.%s",logLevelString,loggerName,DEFAULT_APPENDER_NAME));
+      //AppConfigUtils.dumpProperties(props);
       PropertyConfigurator.configure(props);
     }
     catch (Exception e) {
       // Should be one of the only places where the console gets written to directly - since there is no configured logging at this point
-      String errorMessage = "AppConfig.LoggingHelperLog4j.loadDefaultLogger failed to configure logging.";
+      String errorMessage = String.format("AppConfig.LoggingHelperLog4j.loadDefaultLogger failed to configure logging for %s at logging level %s",loggerName,logLevel.toString());
       System.out.println(errorMessage);
       System.out.println(e.getMessage());
       e.printStackTrace();
@@ -144,17 +164,23 @@ public class LoggingHelperLog4j implements LoggingHelper {
   /**
    * Load log4j configuration from a configuration file. For a given name, load only the first file in the list that is found
    * 
-   * @param configNames List of possible configuration file names
-   * @param loggerContext logger context in which to log loading messages
+   * @param configName Configuration file name
+   * @param loggingLevel level for the new logger
+   * @param activeLogger logger to use for logging until logger is fully configured
    * @return true if configuration found and loaded, false otherwise
    */
- private boolean loadLog4jConfiguration(String configName, String loggingLevel) {
+ private boolean loadLog4jConfiguration(String configName, String loggingLevel,org.slf4j.Logger activeLogger) {
 
-    boolean configFileFound = false;
+   // Override the logger for this class until loading complete, then reset to default logger
+   logger = activeLogger == null ? LoggerFactory.getLogger(LoggingHelperLog4j.class) : activeLogger ;
 
+   boolean configFileFound = false;
+   String configFileLoaded = null;
+   String loadingMethod = null;
+   
     try {
-      String configFileLoaded = null;
-      String loadingMethod = null;
+      configFileLoaded = null;
+      loadingMethod = null;
 
       File configFile = new File(configName);
       logger.trace(String.format("AppConfig.LoggingHelperLog4j.loadLog4jConfiguration checking for configuration file at location %s. File %s and %s",
@@ -193,12 +219,6 @@ public class LoggingHelperLog4j implements LoggingHelper {
         }
       }
 
-      if (configFileFound) {
-        logger.trace(String.format("AppConfig.LoggingHelperLog4j.loadLog4jConfiguration loaded configuration %s using %s",configFileLoaded, loadingMethod));
-      }
-      else {
-        logger.trace(String.format("AppConfig.LoggingHelperLog4j.loadLog4jConfiguration failed to load any configuration"));
-      }
     }
     catch (Exception e) {
       String errorMessage = "AppConfig.LoggingHelperLog4j.loadLog4jConfiguration failed to load application logging configuration";
@@ -206,10 +226,32 @@ public class LoggingHelperLog4j implements LoggingHelper {
       throw new AppConfigException(errorMessage,e);
     }
 
+    // Reset the logger for this class to the default
+    logger = LoggerFactory.getLogger(LoggingHelperLog4j.class);
+
+    if (configFileFound) {
+      logger.trace(String.format("AppConfig.LoggingHelperLog4j.loadLog4jConfiguration loaded configuration %s using %s",configFileLoaded, loadingMethod));
+    }
+    else {
+      logger.trace(String.format("AppConfig.LoggingHelperLog4j.loadLog4jConfiguration failed to load any configuration"));
+    }
+
+    
+    return configFileFound;
+  }
+
+  @Override
+  public void configureLoggerFromConfigurationFiles(List<String> loggingConfigurationFileNames) {
+    for (String loggingConfigurationFileName : loggingConfigurationFileNames) {
+      loadLog4jConfiguration(loggingConfigurationFileName,null,null);
+    }
+  }
+
+  @Override
+  public void overrideLogLevel(String loggerName, String loggingLevel) {
     try {
       // Allow a logging level override for the configured logger - cheat by invoking log4j directly - safe because we're in a log4j context here
-      String packageName = LoggingHelperLog4j.class.getPackage().getName();
-      org.apache.log4j.Logger parentLogger = org.apache.log4j.Logger.getLogger(packageName);
+      org.apache.log4j.Logger parentLogger = org.apache.log4j.Logger.getLogger(loggerName);
       Level overrideLevel = convertToLog4jLevel(loggingLevel,null);
       parentLogger.setLevel(overrideLevel);
     }
@@ -218,9 +260,6 @@ public class LoggingHelperLog4j implements LoggingHelper {
       logger.warn(errorMessage,e);
     }
 
-    return configFileFound;
   }
-
-
   
 }

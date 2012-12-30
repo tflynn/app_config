@@ -33,12 +33,31 @@ import org.apache.commons.configuration.DefaultConfigurationBuilder;
 
 public class FreemarkerHandlerTest {
 
-  private static final Logger logger = LoggerFactory.getLogger(FreemarkerHandlerTest.class);
+  private static TestLogger logger = null;
+  
 
-  @Before
-  public void silenceLoggers() {
-    Log4jHelper.silencePackage("freemarker");
-    Log4jHelper.loadInitialInternalLogger("TRACE");
+  //private static final String RUNTIME_ENVIRONMENT = "test";
+  private static final String INTERNAL_LOGGING_LEVEL = "TRACE";
+  
+
+  private static boolean internalLoggingIntiialized = false;
+  private static boolean loggersQuietened = false;
+
+  public FreemarkerHandlerTest() {
+    initializeTestLogger();
+    logger.trace("AppConfigTest()");
+    quietLoggers();
+
+  }
+  private void quietLoggers() {
+    if (! loggersQuietened) {
+      logger.trace("AppConfigTest.quietLoggers start");
+      LoggingHelper loggingHelper = LoggingHelperFactory.instance();
+      loggingHelper.quietLoggingInitializationMessages("freemarker");
+      loggingHelper.quietLoggingInitializationMessages("org.apache.commons.configuration");
+      logger.trace("AppConfigTest.quietLoggers end");
+      loggersQuietened = true;
+    }
   }
   
   @Test
@@ -61,6 +80,19 @@ public class FreemarkerHandlerTest {
     assertTrue("The loaded template should match the default contents",success);
     if (logger.isTraceEnabled()) {
       logger.trace(String.format("AppConfig.FreemarkerHandlerTest.testDefaultTemplateLoad finished and %s", success ? "passed" : "failed"));
+    }
+  }
+  
+  /*
+   * Lazy initializer for test logger
+   */
+  private static void initializeTestLogger() {
+    if (!internalLoggingIntiialized) {
+      //announceStart("AppConfigTest.initializer");
+      logger = new TestLogger();
+      logger.configureDynamically(INTERNAL_LOGGING_LEVEL);
+      //announceEnd("AppConfigTest.initializer");
+      internalLoggingIntiialized = true;
     }
   }
   
