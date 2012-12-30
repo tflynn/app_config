@@ -1,5 +1,5 @@
 
-# AppConfig V2.3 - Application configuration the easy way
+# AppConfig V3.0 - Application configuration the easy way
 
 ## A thin wrapper for Apache Commons Configuration
 
@@ -62,7 +62,7 @@ By default, AppConfig assumes you're running in 'development' mode.
 
 ### Run your program
 
-When you run the program, your modified settings will be picked up automatically and be used to configure the program. 
+When you run the program, your modified settings will be picked up automatically, will override the default settings and be used to configure the program. 
 
 ## That's it!!
 
@@ -94,6 +94,7 @@ AppConfig is designed to provide painless configuration for multiple runtime env
 It is particularly targeted at the problem of configuring components and applications 'from the outside' without needing to modify the packaged artifact.
 
 It is based on Apache Commons Configuration http://commons.apache.org/configuration .
+
 AppConfig is designed to provide painless multi-environment, external and internal configuration with default settings for components and programs.
 
 ### Using AppConfig in code
@@ -143,15 +144,15 @@ In general, if a file is shown, it must be present in one of the locations or an
 
 ### And configuration settings are available
 
-    CombinedConfiguration configuration = appConfig.getCombinedConfiguration();
+    Configuration configuration = appConfig.getConfiguration();
     
-    // See Apache Commons Configuration API docs for more information 
+    // See AppConfig javadocs or Apache Commons Configuration API docs for more information 
     // http://commons.apache.org/configuration/apidocs/index.html
-    String configurationValue = combinedConfiguration.getString("some property name"); 
+    String configurationValue = configuration.getString("some property name"); 
     
 ### Logging
 
-The logging configuration support assumes that the back-end logging can be configured using Log4j V1 (1.2.14) syntax.  If you use the Slf4j logging front-end, that will be true.
+The default logging configuration support assumes that the back-end logging can be configured using Log4j V1 (1.2.17) syntax.  If you use the Slf4j logging front-end, that will be true.
 
 In code, all you need is something similar to:
 
@@ -190,10 +191,32 @@ And in the POM file - or equivalend dependency management
     <dependency>
       <groupId>log4j</groupId>
       <artifactId>log4j</artifactId>
-      <version>1.2.14</version>
+      <version>1.2.17</version>
     </dependency>
 
 ## Advanced information
+
+### Changing logging and configuration implementations
+
+Both the logging and configuration implementations can be changed. 
+
+Because AppConfig follows its own configuration model, it can be configured from the outside, and doesn't require a rebuild of the package to add new support. 
+
+#### Logging
+
+To change logging support:
+
+* Create a class which implements the 'LoggingHelper" interface 
+* Override the internal setting "com.verymuchme.appconfig.loggingHelper.className" (See below)
+* Consider changing the setting "com.verymuchme.appconfig.logging.ConfigurationPrefix" (See below)
+
+#### Configuration
+
+To change configuration support:
+
+* Create a builder class which implements the 'ConfigurationBuilder" interface extending "ConfigurationBuilderBase"
+* Create a configuration class which implements the 'Configuration" interface, extending "ConfigurationBase"
+* Override the internal setting "com.verymuchme.appconfig.configurationBuilder.className" (See below)
 
 ### Error handling
 
@@ -258,7 +281,7 @@ The following internal settings are available:
     # a comma delimited list of values is recognized as an array of string values
     # 
     
-    # File name for internal default properties
+    # File name for internal default properties - only specify a value to override the default 'internal-defaults.properties'
     com.verymuchme.appconfig.internalDefaultPropertiesFileName = null
     
     # Include the Apache Commons Configuration definition file to include the "<system/>" element as the first definition
@@ -283,7 +306,7 @@ The following internal settings are available:
     com.verymuchme.appconfig.database.defaultConfigurationEnabled = true
     
     # Default prefix for a log4j configuration file
-    com.verymuchme.appconfig.log4j.ConfigurationPrefix = log4j
+    com.verymuchme.appconfig.logging.ConfigurationPrefix = log4j
     # Require a default log4j configuration file
     com.verymuchme.appconfig.log4j.defaultConfigurationEnabled = true
     
@@ -299,24 +322,35 @@ The following internal settings are available:
     # Base class for Freemarker to use to find template
     com.verymuchme.appconfig.freemarker.baseClassName = null
     
-    # Default AppConfig logging level at startup
-    com.verymuchme.appconfig.log4j.logLevel = ERROR
+    # Default AppConfig logging level for bootstrap logging
+    com.verymuchme.appconfig.boostrapLogging.logLevel = ERROR
+    
+    # Default AppConfig logging level for internal logging
+    com.verymuchme.appconfig.logging.logLevel = ERROR
     
     # Name of AppConfig internal log4j configuration file
-    com.verymuchme.appconfig.log4j.internalConfigurationFileName = log4j-internal-logger.properties
+    com.verymuchme.appconfig.logging.internalConfigurationFileName = log4j-internal-logger.properties
     
     # Default value of application properties package name
     application.propertiesPackageName = null
     
     # Default value of application properties package directory
     application.propertiesPackageDir = null
+    
+    # Default LoggingHelper class name
+    com.verymuchme.appconfig.loggingHelper.className = com.verymuchme.appconfig.LoggingHelperLog4j
+    
+    # Default ConfigurationBuilder class name
+    com.verymuchme.appconfig.configurationBuilder.className = com.verymuchme.appconfig.ConfigurationBuilderCommonsConfiguration
 
 
 #### Changing the configuration template
 
-Apache Commons Configuration uses the concept of a configuration definition file. At its heart, all AppConfig is doing is generating a customized configuration definition file and passing it to Apache Commons Configuration to load.
+Apache Commons Configuration uses the concept of a configuration definition file. At its heart, all AppConfig is doing is generating a customized configuration definition file and passing it to Apache Commons Configuration to load application and database properties. 
 
 If the default template in AppConfig isn't suitable, it can be changed by setting the internal setting 'com.verymuchme.appconfig.configurationTemplateName' to point to another template. The template is a Freemarker template. Have a look at the AppConfig source before making a change to see what settings are passed to the template.
+
+Note that, because of loading issues, logging configuration is handled separately.
 
 ### Accessing AppConfig internal settings
 
@@ -345,5 +379,5 @@ The AppConfig source is managed at https://github.com/tflynn/app_config.
     <dependency>
       <groupId>com.verymuchme.appconfig</groupId>
       <artifactId>app_config</artifactId>
-      <version>2.3</version>
+      <version>3.0</version>
     </dependency>

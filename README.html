@@ -1,4 +1,4 @@
-<h1>AppConfig V2.3 - Application configuration the easy way</h1>
+<h1>AppConfig V3.0 - Application configuration the easy way</h1>
 
 <h2>A thin wrapper for Apache Commons Configuration</h2>
 
@@ -69,7 +69,7 @@
 
 <h3>Run your program</h3>
 
-<p>When you run the program, your modified settings will be picked up automatically and be used to configure the program. </p>
+<p>When you run the program, your modified settings will be picked up automatically, will override the default settings and be used to configure the program. </p>
 
 <h2>That&#39;s it!!</h2>
 
@@ -102,8 +102,9 @@ java -cp ./target/basic_jar-1.0-SNAPSHOT-jar-with-dependencies.jar com.example.d
 
 <p>It is particularly targeted at the problem of configuring components and applications &#39;from the outside&#39; without needing to modify the packaged artifact.</p>
 
-<p>It is based on Apache Commons Configuration http://commons.apache.org/configuration .
-AppConfig is designed to provide painless multi-environment, external and internal configuration with default settings for components and programs.</p>
+<p>It is based on Apache Commons Configuration http://commons.apache.org/configuration .</p>
+
+<p>AppConfig is designed to provide painless multi-environment, external and internal configuration with default settings for components and programs.</p>
 
 <h3>Using AppConfig in code</h3>
 
@@ -157,16 +158,16 @@ AppConfig is designed to provide painless multi-environment, external and intern
 
 <h3>And configuration settings are available</h3>
 
-<pre><code>CombinedConfiguration configuration = appConfig.getCombinedConfiguration();
+<pre><code>Configuration configuration = appConfig.getConfiguration();
 
-// See Apache Commons Configuration API docs for more information 
+// See AppConfig javadocs or Apache Commons Configuration API docs for more information 
 // http://commons.apache.org/configuration/apidocs/index.html
-String configurationValue = combinedConfiguration.getString(&quot;some property name&quot;); 
+String configurationValue = configuration.getString(&quot;some property name&quot;); 
 </code></pre>
 
 <h3>Logging</h3>
 
-<p>The logging configuration support assumes that the back-end logging can be configured using Log4j V1 (1.2.14) syntax.  If you use the Slf4j logging front-end, that will be true.</p>
+<p>The default logging configuration support assumes that the back-end logging can be configured using Log4j V1 (1.2.17) syntax.  If you use the Slf4j logging front-end, that will be true.</p>
 
 <p>In code, all you need is something similar to:</p>
 
@@ -206,11 +207,37 @@ public class SomeClass {
 &lt;dependency&gt;
   &lt;groupId&gt;log4j&lt;/groupId&gt;
   &lt;artifactId&gt;log4j&lt;/artifactId&gt;
-  &lt;version&gt;1.2.14&lt;/version&gt;
+  &lt;version&gt;1.2.17&lt;/version&gt;
 &lt;/dependency&gt;
 </code></pre>
 
 <h2>Advanced information</h2>
+
+<h3>Changing logging and configuration implementations</h3>
+
+<p>Both the logging and configuration implementations can be changed. </p>
+
+<p>Because AppConfig follows its own configuration model, it can be configured from the outside, and doesn&#39;t require a rebuild of the package to add new support. </p>
+
+<h4>Logging</h4>
+
+<p>To change logging support:</p>
+
+<ul>
+<li>Create a class which implements the &#39;LoggingHelper&quot; interface </li>
+<li>Override the internal setting &quot;com.verymuchme.appconfig.loggingHelper.className&quot; (See below)</li>
+<li>Consider changing the setting &quot;com.verymuchme.appconfig.logging.ConfigurationPrefix&quot; (See below)</li>
+</ul>
+
+<h4>Configuration</h4>
+
+<p>To change configuration support:</p>
+
+<ul>
+<li>Create a builder class which implements the &#39;ConfigurationBuilder&quot; interface extending &quot;ConfigurationBuilderBase&quot;</li>
+<li>Create a configuration class which implements the &#39;Configuration&quot; interface, extending &quot;ConfigurationBase&quot;</li>
+<li>Override the internal setting &quot;com.verymuchme.appconfig.configurationBuilder.className&quot; (See below)</li>
+</ul>
 
 <h3>Error handling</h3>
 
@@ -289,7 +316,7 @@ public class SomeClass {
 # a comma delimited list of values is recognized as an array of string values
 # 
 
-# File name for internal default properties
+# File name for internal default properties - only specify a value to override the default &#39;internal-defaults.properties&#39;
 com.verymuchme.appconfig.internalDefaultPropertiesFileName = null
 
 # Include the Apache Commons Configuration definition file to include the &quot;&lt;system/&gt;&quot; element as the first definition
@@ -314,7 +341,7 @@ com.verymuchme.appconfig.database.ConfigurationPrefix = database
 com.verymuchme.appconfig.database.defaultConfigurationEnabled = true
 
 # Default prefix for a log4j configuration file
-com.verymuchme.appconfig.log4j.ConfigurationPrefix = log4j
+com.verymuchme.appconfig.logging.ConfigurationPrefix = log4j
 # Require a default log4j configuration file
 com.verymuchme.appconfig.log4j.defaultConfigurationEnabled = true
 
@@ -330,24 +357,35 @@ com.verymuchme.appconfig.configurationTemplateName = configuration-xml.ftl
 # Base class for Freemarker to use to find template
 com.verymuchme.appconfig.freemarker.baseClassName = null
 
-# Default AppConfig logging level at startup
-com.verymuchme.appconfig.log4j.logLevel = ERROR
+# Default AppConfig logging level for bootstrap logging
+com.verymuchme.appconfig.boostrapLogging.logLevel = ERROR
+
+# Default AppConfig logging level for internal logging
+com.verymuchme.appconfig.logging.logLevel = ERROR
 
 # Name of AppConfig internal log4j configuration file
-com.verymuchme.appconfig.log4j.internalConfigurationFileName = log4j-internal-logger.properties
+com.verymuchme.appconfig.logging.internalConfigurationFileName = log4j-internal-logger.properties
 
 # Default value of application properties package name
 application.propertiesPackageName = null
 
 # Default value of application properties package directory
 application.propertiesPackageDir = null
+
+# Default LoggingHelper class name
+com.verymuchme.appconfig.loggingHelper.className = com.verymuchme.appconfig.LoggingHelperLog4j
+
+# Default ConfigurationBuilder class name
+com.verymuchme.appconfig.configurationBuilder.className = com.verymuchme.appconfig.ConfigurationBuilderCommonsConfiguration
 </code></pre>
 
 <h4>Changing the configuration template</h4>
 
-<p>Apache Commons Configuration uses the concept of a configuration definition file. At its heart, all AppConfig is doing is generating a customized configuration definition file and passing it to Apache Commons Configuration to load.</p>
+<p>Apache Commons Configuration uses the concept of a configuration definition file. At its heart, all AppConfig is doing is generating a customized configuration definition file and passing it to Apache Commons Configuration to load application and database properties. </p>
 
 <p>If the default template in AppConfig isn&#39;t suitable, it can be changed by setting the internal setting &#39;com.verymuchme.appconfig.configurationTemplateName&#39; to point to another template. The template is a Freemarker template. Have a look at the AppConfig source before making a change to see what settings are passed to the template.</p>
+
+<p>Note that, because of loading issues, logging configuration is handled separately.</p>
 
 <h3>Accessing AppConfig internal settings</h3>
 
@@ -375,6 +413,6 @@ application.propertiesPackageDir = null
 &lt;dependency&gt;
   &lt;groupId&gt;com.verymuchme.appconfig&lt;/groupId&gt;
   &lt;artifactId&gt;app_config&lt;/artifactId&gt;
-  &lt;version&gt;2.3&lt;/version&gt;
+  &lt;version&gt;3.0&lt;/version&gt;
 &lt;/dependency&gt;
 </code></pre>
