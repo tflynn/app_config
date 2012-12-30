@@ -70,7 +70,7 @@ When you run the program, your modified settings will be picked up automatically
 
 You can generate a fully functional demo by using the following Maven archetype and instructions:
 
-    mvn archetype:generate -DarchetypeRepository=https://github.com/tflynn/mvn-repo-public/raw/master/releases -DarchetypeGroupId=com.verymuchme.archetypes -DarchetypeArtifactId=basic_jar -DarchetypeVersion=1.1 -DgroupId=com.example.demo -DartifactId=basic_jar -DartifactVersion=1.0-SNAPSHOT
+    mvn archetype:generate -DarchetypeRepository=https://github.com/tflynn/mvn-repo-public/raw/master/releases -DarchetypeGroupId=com.verymuchme.archetypes -DarchetypeArtifactId=basic_jar -DarchetypeVersion=1.2 -DgroupId=com.example.demo -DartifactId=basic_jar -DartifactVersion=1.0-SNAPSHOT
     cd basic_jar
     mvn clean package
     java -cp ./target/basic_jar-1.0-SNAPSHOT-jar-with-dependencies.jar com.example.demo.App
