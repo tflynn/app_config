@@ -22,7 +22,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * 
- * <h1>AppConfig V2.0 - Application configuration the easy way</h1>
+ * <h1>AppConfig V3.0 - Application configuration the easy way</h1>
  * 
  * <h2>A thin wrapper for Apache Commons Configuration</h2>
  * 

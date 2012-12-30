@@ -42,7 +42,7 @@ public class Options {
   /**
    * Create a Options instance using the specified HashMap as source
    * 
-   * @param HashMap to use as source
+   * @param settings HashMap to use as source
    */
   public Options(HashMap<String,Object> settings) {
     this.settings = settings == null ? new HashMap<String,Object>() : settings ; 

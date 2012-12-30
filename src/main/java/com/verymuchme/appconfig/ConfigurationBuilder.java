@@ -19,7 +19,7 @@ public interface ConfigurationBuilder {
   /**
    * Set internal defaults
    * 
-   * @param internalDefaults
+   * @param internalProperties
    */
   public void setInternalProperties(ExtendedProperties internalProperties);
   

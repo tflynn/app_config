@@ -43,7 +43,7 @@ public class ConfigurationHelper {
    * 
    * @param propertyName Name of setting
    * @param options Hash of runtime options
-   * @return
+   * @return Value as an object
    */
   public Object getSettingFromOptionsEnvSystem(String propertyName, Options options) {
     options = options == null ? new Options() : options;
@@ -148,7 +148,6 @@ public class ConfigurationHelper {
   /** 
    * Check the run-time environment. Defaults to 'development' if any errors during setting
    * 
-   * @param options 
    * @param internalProperties Internal Properties
    */
   public void checkRunTimeEnvironment(ExtendedProperties internalProperties) {

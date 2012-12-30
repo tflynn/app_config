@@ -233,7 +233,7 @@ public class ExtendedProperties {
    * Convert a property value to an ExtendedPropertiesEntry
    * 
    * @param propertyName Property name
-   * @param propertyValueString Property value as an object
+   * @param propertyValue Property value as an object
    * 
    * @return ExtendedPropertiesEntry instance
    * 
