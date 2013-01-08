@@ -340,6 +340,12 @@ The following internal settings are available:
     
     # Default ConfigurationBuilder class name
     com.verymuchme.appconfig.configurationBuilder.className = com.verymuchme.appconfig.ConfigurationBuilderCommonsConfiguration
+    
+    # Context class for loading logging properties. If null, configuration files loaded relative to internal logging configuration
+    application.logging.contextClass = null
+    
+    # For Spring Apps, application context
+    application.applicationContext = null
 
 
 #### Changing the configuration template
