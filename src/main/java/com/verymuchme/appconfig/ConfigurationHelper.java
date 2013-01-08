@@ -99,7 +99,6 @@ public class ConfigurationHelper {
       while (true) {
   
         internalProperties = new ExtendedProperties();
-        // Use putAll rather than the constructor so as not to get multiple copies of the same property
         internalProperties.loadStringProperties(internalDefaults);
         
         // Do this in reverse order so the value defaulting order works
@@ -179,28 +178,33 @@ public class ConfigurationHelper {
    */
   public List<String> generateLoggingConfigurationNames(ExtendedProperties internalProperties) {
     List<String> configNames = new ArrayList<String>();
+    
     String packageDir = internalProperties.getProperty(InternalConfigurationConstants.APPLICATION_PROPERTIES_PACKAGE_DIR_PROPERTY_NAME);
-    if (packageDir != null) {
-      String suffix = internalProperties.getProperty(InternalConfigurationConstants.CONFIGURATION_NAME_SUFFIX_PROPERTY_NAME);
-      String log4jPrefix = internalProperties.getProperty(InternalConfigurationConstants.LOGGING_CONFIGURATION_NAME_PREFIX_PROPERTY_NAME);
-      String rtEnv = internalProperties.getProperty(InternalConfigurationConstants.RUN_TIME_ENVIRONMENT_PROPERTY_NAME);
-      String defaultPropName = internalProperties.getProperty(InternalConfigurationConstants.DEFAULT_CONFIGURATION_NAME_PROPERTY_NAME);
-      String externalConfigurationDirectory = internalProperties.getProperty(InternalConfigurationConstants.EXTERNAL_CONFIGURATION_DIRECTORY_PROPERTY_NAME);
-      if (externalConfigurationDirectory != null ) {
-        String confDir = externalConfigurationDirectory;
-        String extLog4jDef = String.format("%s/%s-%s.%s",confDir,log4jPrefix,rtEnv,suffix);
-        configNames.add(extLog4jDef);
-      }
-      String log4jDef = String.format("%s/%s-%s.%s",packageDir,log4jPrefix,rtEnv,suffix);
-      configNames.add(log4jDef);
-  
-      boolean includeLog4jDefault = internalProperties.getBooleanProperty(InternalConfigurationConstants.DEFAULT_LOG4J_CONFIGURATION_ENABLED_PROPERTY_NAME);
-      if (includeLog4jDefault) {
-        String log4jDefault = String.format("%s/%s-%s.%s",packageDir,log4jPrefix,defaultPropName,suffix);
-        configNames.add(log4jDefault);
-      }
-      
-      
+    String suffix = internalProperties.getProperty(InternalConfigurationConstants.CONFIGURATION_NAME_SUFFIX_PROPERTY_NAME);
+    String log4jPrefix = internalProperties.getProperty(InternalConfigurationConstants.LOGGING_CONFIGURATION_NAME_PREFIX_PROPERTY_NAME);
+    String rtEnv = internalProperties.getProperty(InternalConfigurationConstants.RUN_TIME_ENVIRONMENT_PROPERTY_NAME);
+    String defaultPropName = internalProperties.getProperty(InternalConfigurationConstants.DEFAULT_CONFIGURATION_NAME_PROPERTY_NAME);
+    String externalConfigurationDirectory = internalProperties.getProperty(InternalConfigurationConstants.EXTERNAL_CONFIGURATION_DIRECTORY_PROPERTY_NAME);
+    Object contextClassObj = internalProperties.get(InternalConfigurationConstants.APPLICATION_LOGGING_CONTEXT_CLASS_PROPERTY_NAME);
+    
+    // If loading class relative, don't use a prefixed path for the files
+    String pathPrefix =  (packageDir == null) ? null : (packageDir + "/");
+    if ( (contextClassObj != null) && (pathPrefix != null) ) {
+      pathPrefix = null;
+    }
+    
+    if (externalConfigurationDirectory != null ) {
+      String confDir = externalConfigurationDirectory;
+      String extLog4jDef = String.format("%s/%s-%s.%s",confDir,log4jPrefix,rtEnv,suffix);
+      configNames.add(extLog4jDef);
+    }
+    String log4jDef = String.format("%s%s-%s.%s",pathPrefix == null ? "" : pathPrefix ,log4jPrefix,rtEnv,suffix);
+    configNames.add(log4jDef);
+
+    boolean includeLog4jDefault = internalProperties.getBooleanProperty(InternalConfigurationConstants.DEFAULT_LOG4J_CONFIGURATION_ENABLED_PROPERTY_NAME);
+    if (includeLog4jDefault) {
+      String log4jDefault = String.format("%s%s-%s.%s",pathPrefix == null ? "" : pathPrefix,log4jPrefix,defaultPropName,suffix);
+      configNames.add(log4jDefault);
     }
     if (logger.isTraceEnabled()) {
       if (configNames.isEmpty()) {

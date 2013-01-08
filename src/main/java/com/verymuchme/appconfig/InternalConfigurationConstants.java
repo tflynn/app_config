@@ -61,7 +61,9 @@ public class InternalConfigurationConstants {
   public static final String DEFAULT_LOGGING_HELPER_CLASS_NAME = "com.verymuchme.appconfig.LoggingHelperLog4j";
   public static final String DEFAULT_BOOTSTRAP_LOGGING_LEVEL_PROPERTY_NAME = "com.verymuchme.appconfig.boostrapLogging.logLevel";
   public static final String DEFAULT_BOOTSTRAP_LOGGING_LEVEL = "ERROR";
-  
+
+  public static final String APPLICATION_LOGGING_CONTEXT_CLASS_PROPERTY_NAME = "application.logging.contextClass";
+
   public static final String DEFAULT_CONFIGURATION_BUILDER_CLASS_NAME_PROPERTY_NAME = "com.verymuchme.appconfig.configurationBuilder.className";
   public static final String DEFAULT_CONFIGURATION_BUILDER_CLASS_NAME = "com.verymuchme.appconfig.ConfigurationBuilderCommonsConfiguration";
   

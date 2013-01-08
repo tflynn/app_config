@@ -92,5 +92,19 @@ public class NullLoggingHelper implements LoggingHelper {
     // TODO Auto-generated method stub
     
   }
+
+  @Override
+  public void configureLoggerFromConfigurationFile(
+      String loggingConfigurationFileName, String loggingLevel,
+      Logger activeLogger, Class classContext) {
+    // TODO Auto-generated method stub
+    
+  }
+
+  @Override
+  public void setExtendedProperties(ExtendedProperties extendedProperties) {
+    // TODO Auto-generated method stub
+    
+  }
   
 }

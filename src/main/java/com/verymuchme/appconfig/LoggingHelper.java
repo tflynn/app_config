@@ -70,7 +70,7 @@ public interface LoggingHelper {
   public void quietLoggingInitializationMessages(String loggerName, String logLevelString);
 
   /**
-   * Create loggers from the specified configuration files
+   * Create loggers from the specified configuration files. Stop after first successful load.
    * 
    * @param loggingConfigurationFileNames
    */
@@ -94,6 +94,17 @@ public interface LoggingHelper {
    * @param activeLogger logger to use for logging until logging is configured for the specified logger. Null indicates no override
    */
   public void configureLoggerFromConfigurationFile(String loggingConfigurationFileName, String loggingLevel, org.slf4j.Logger activeLogger);
+ 
+  /**
+   * Create a logger from the specified configuration file name with the specified logging level as an override. 
+   * Use the specified logger to log any error messages. Specify the class context.
+   * 
+   * @param loggingConfigurationFileName
+   * @param loggingLevel
+   * @param activeLogger logger to use for logging until logging is configured for the specified logger. Null indicates no override
+   * @param classContext Specify class for resource loading. If null, loading is relative to LoggingHelper class instance
+   */
+  public void configureLoggerFromConfigurationFile(String loggingConfigurationFileName, String loggingLevel, org.slf4j.Logger activeLogger, Class classContext);
   
   /**
    * Override logging level for specified logger
@@ -102,4 +113,11 @@ public interface LoggingHelper {
    * @param loggingLevel Logging level
    */
   public void overrideLogLevel(String loggerName, String loggingLevel);
+  
+  /**
+   * Save off the extended properties. After initialization, these values override options
+   * 
+   * @param internalProperties ExtendedProperties instance
+   */
+  public void setExtendedProperties(ExtendedProperties internalProperties); 
 }

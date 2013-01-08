@@ -151,15 +151,16 @@ public class AppConfig {
 
     // Make sure the runtime environment is set
     this.configurationHelper.checkRunTimeEnvironment(this.internalProperties);
-
+    
     if (logger.isTraceEnabled()) {
       logger.trace(String.format("AppConfig.configure runtime options and internal properties"));
       this.internalProperties.dumpProperties();
     }
-    
+
     // Load the real internal logger configuration
     String loggingConfigurationFileName = internalProperties.getProperty(InternalConfigurationConstants.INTERNAL_LOGGING_CONFIGURATION_FILE_PROPERTY_NAME);
     String loggingLevel = internalProperties.getProperty(InternalConfigurationConstants.DEFAULT_LOGGING_LEVEL_PROPERTY_NAME);
+    this.loggingHelper.setExtendedProperties(this.internalProperties);
     this.loggingHelper.configureLoggerFromConfigurationFile(loggingConfigurationFileName,loggingLevel,bootstrapLogger);
     this.loggingHelper.overrideLogLevel(this.getClass().getPackage().getName(), loggingLevel);
 
@@ -181,8 +182,8 @@ public class AppConfig {
     logger.trace(String.format("AppConfig.configure Generated configuration definitions"));
 
     // Configure application-level logging
-    List<String> applictionLoggerConfigurationFileNames = this.configurationHelper.generateLoggingConfigurationNames(this.internalProperties);
-    this.loggingHelper.configureLoggerFromConfigurationFiles(applictionLoggerConfigurationFileNames);
+    List<String> applicationLoggerConfigurationFileNames = this.configurationHelper.generateLoggingConfigurationNames(this.internalProperties);
+    this.loggingHelper.configureLoggerFromConfigurationFiles(applicationLoggerConfigurationFileNames);
     logger.trace(String.format("AppConfig.configure loaded application logging"));
     
   }

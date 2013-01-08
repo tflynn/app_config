@@ -42,6 +42,11 @@ public class LoggingHelperLog4j implements LoggingHelper {
   
   private static final String DEFAULT_APPENDER_NAME = "CONSOLE_APPENDER";
 
+  private Options options = null;
+  
+  private ExtendedProperties internalProperties = null;
+  
+    
   /**
    * Create a new instance of the helper
    */
@@ -55,9 +60,18 @@ public class LoggingHelperLog4j implements LoggingHelper {
    * @param options
    */
   public LoggingHelperLog4j(Options options) {
-    
+    this.options = options;
   }
   
+  /**
+   * Save off the internal properties. After initialization, these values override options
+   * 
+   * @param internalProperties ExtendedProperties instance
+   */
+  public void setExtendedProperties(ExtendedProperties internalProperties) {
+    this.internalProperties = internalProperties;
+  }
+
   @Override
   public void bootstrapInternalLogging() {
     bootstrapInternalLogging(null);
@@ -104,10 +118,14 @@ public class LoggingHelperLog4j implements LoggingHelper {
 
   @Override
   public void configureLoggerFromConfigurationFile(String loggingConfigurationFileName, String loggingLevel, org.slf4j.Logger activeLogger) {
-    loadLog4jConfiguration(loggingConfigurationFileName, loggingLevel,activeLogger);
+    configureLoggerFromConfigurationFile(loggingConfigurationFileName, loggingLevel,activeLogger,null);
   }
   
-  
+  @Override
+  public void configureLoggerFromConfigurationFile(String loggingConfigurationFileName, String loggingLevel, Logger activeLogger, Class classContext) {
+    loadLog4jConfiguration(loggingConfigurationFileName, loggingLevel,activeLogger,classContext);
+  }
+
   /**
    * Convert a Log4j logging level expressed as a string to a Log4j Level
    * 
@@ -167,12 +185,16 @@ public class LoggingHelperLog4j implements LoggingHelper {
    * @param configName Configuration file name
    * @param loggingLevel level for the new logger
    * @param activeLogger logger to use for logging until logger is fully configured
+   * @param classContext Class context for loading resources. If null, current class is used
    * @return true if configuration found and loaded, false otherwise
    */
- private boolean loadLog4jConfiguration(String configName, String loggingLevel,org.slf4j.Logger activeLogger) {
+ private boolean loadLog4jConfiguration(String configName, String loggingLevel,org.slf4j.Logger activeLogger, Class classContext) {
 
    // Override the logger for this class until loading complete, then reset to default logger
    logger = activeLogger == null ? LoggerFactory.getLogger(LoggingHelperLog4j.class) : activeLogger ;
+
+   logger.trace(String.format("AppConfig.LoggingHelperLog4j.loadLog4jConfiguration classContext %s", classContext == null ? "null" : classContext.getName()));
+   
 
    boolean configFileFound = false;
    String configFileLoaded = null;
@@ -195,13 +217,16 @@ public class LoggingHelperLog4j implements LoggingHelper {
         loadingMethod = "absolute";
       }
       if (!configFileFound) {
-        InputStream configFileIs = getClass().getResourceAsStream(configName);
-        //ClassLoader loader = LoggingHelperLog4j.class.getClassLoader();
-        //URL url = loader.getResource(configName);
-        //logger.trace(String.format("AppConfig.LoggingHelperLog4j.loadLog4jConfiguration checking for configuration file %s using standard classloader. File %s",configName, url == null ? "was not found" : "was found"));
-        //if (url != null) {
+        logger.trace(String.format("AppConfig.LoggingHelperLog4j.loadLog4jConfiguration checking for configuration file %s relative to class %s",configName,classContext == null ? this.getClass().getName() : classContext.getName()));
+        InputStream configFileIs = null;
+        if (classContext == null) {
+          configFileIs = getClass().getResourceAsStream(configName);
+        }
+        else {
+          configFileIs = classContext.getResourceAsStream(configName);
+        }
         if (configFileIs != null) {
-          logger.trace(String.format("AppConfig.LoggingHelperLog4j.loadLog4jConfiguration loading configuration file %s using resource relative to class %s",configName,this.getClass().getName() ));
+          logger.trace(String.format("AppConfig.LoggingHelperLog4j.loadLog4jConfiguration loading configuration file %s using resource relative to class %s",configName,classContext == null ? this.getClass().getName() : classContext.getName()));
           PropertyConfigurator.configure(configFileIs);
           configFileFound = true;
           configFileLoaded = configName;
@@ -243,7 +268,17 @@ public class LoggingHelperLog4j implements LoggingHelper {
   @Override
   public void configureLoggerFromConfigurationFiles(List<String> loggingConfigurationFileNames) {
     for (String loggingConfigurationFileName : loggingConfigurationFileNames) {
-      loadLog4jConfiguration(loggingConfigurationFileName,null,null);
+      Object contextClassObj = this.internalProperties.get(InternalConfigurationConstants.APPLICATION_LOGGING_CONTEXT_CLASS_PROPERTY_NAME);
+      Class contextClass = contextClassObj == null ? null : ((Class) contextClassObj);
+      if (contextClassObj == null) {
+        logger.trace(String.format("AppConfig.LoggingHelperLog4j.configureLoggerFromConfigurationFiles contextClassObj is null. Property %s not set",InternalConfigurationConstants.APPLICATION_LOGGING_CONTEXT_CLASS_PROPERTY_NAME));
+      }
+      else {
+        logger.trace(String.format("AppConfig.LoggingHelperLog4j.configureLoggerFromConfigurationFiles context class found and cast to %s",contextClass.getName()));
+      }
+      // Stop after first successful load
+      boolean loaded = loadLog4jConfiguration(loggingConfigurationFileName,null,null,contextClass);
+      if (loaded) break;
     }
   }
 
@@ -261,5 +296,6 @@ public class LoggingHelperLog4j implements LoggingHelper {
     }
 
   }
+
   
 }
