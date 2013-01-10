@@ -67,4 +67,7 @@ public class InternalConfigurationConstants {
   public static final String DEFAULT_CONFIGURATION_BUILDER_CLASS_NAME_PROPERTY_NAME = "com.verymuchme.appconfig.configurationBuilder.className";
   public static final String DEFAULT_CONFIGURATION_BUILDER_CLASS_NAME = "com.verymuchme.appconfig.ConfigurationBuilderCommonsConfiguration";
   
+  public static final String USE_CONTEXT_PATH_AS_SUFFIX_PROPERTY_NAME = "com.verymuchme.appconfig.externalConfigurationDirectory.useContextPathAsSuffix";
+  public static final String CONTEXT_PATH_PROPERTY_NAME = "application.contextPath";
+  
 }

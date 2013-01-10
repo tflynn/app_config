@@ -83,7 +83,7 @@ public class ConfigurationBuilderCommonsConfiguration extends ConfigurationBuild
           logger.trace("ConfigurationBuilderCommonsConfiguration: creating template data map");
           AppConfigUtils.dumpMap(templateData);
         }
-        
+
         FreemarkerHandler freemarkerHandler = null;
         String freemarkerBaseClassName = this.internalProperties.getProperty(InternalConfigurationConstants.FREEMARKER_CONFIGURATION_BASE_CLASS_PROPERTY_NAME);
         if (freemarkerBaseClassName == null) {

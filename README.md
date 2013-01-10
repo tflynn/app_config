@@ -1,5 +1,5 @@
 
-# AppConfig V3.0 - Application configuration the easy way
+# AppConfig V3.1 - Application configuration the easy way
 
 ## A thin wrapper for Apache Commons Configuration
 
@@ -347,6 +347,21 @@ The following internal settings are available:
     # For Spring Apps, application context
     application.applicationContext = null
 
+    # When the application is a web application is running in a web container and the configuration needs to be 
+    # sensitive to a specific application instance, this setting uses the ServletContext.contextPath to   
+    # differentiate amongst configurations for application instances.
+    # The setting only affects external configurations. If set, the context path will be added to the external 
+    # configuration directory path and the resulting path will be used as the base by which 
+    # to find applicable configuration files.
+    #
+    # The contextPath must be passed to AppConfig as an option at application initialization time 
+    # using the setting  'com.verymuchme.appconfig.contextPath' 
+    #
+    com.verymuchme.appconfig.externalConfigurationDirectory.useContextPathAsSuffix = false
+    
+    # For web applications, the contextPath at application initialization time - ServletContext.getContextPath()
+    application.contextPath = null
+    
 
 #### Changing the configuration template
 
@@ -383,5 +398,5 @@ The AppConfig source is managed at https://github.com/tflynn/app_config.
     <dependency>
       <groupId>com.verymuchme.appconfig</groupId>
       <artifactId>app_config</artifactId>
-      <version>3.0</version>
+      <version>3.1.0</version>
     </dependency>

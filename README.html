@@ -1,4 +1,154 @@
-<h1>AppConfig V3.0 - Application configuration the easy way</h1>
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<style>
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+blockquote {
+    margin: 0;
+    padding: 0;
+}
+body {
+    font-family: "Helvetica Neue", Helvetica, "Hiragino Sans GB", Arial, sans-serif;
+    font-size: 13px;
+    line-height: 18px;
+    color: #737373;
+    background-color: white;
+    margin: 10px 13px 10px 13px;
+}
+table {
+	margin: 10px 0 15px 0;
+	border-collapse: collapse;
+}
+td,th {	
+	border: 1px solid #ddd;
+	padding: 3px 10px;
+}
+th {
+	padding: 5px 10px;	
+}
+
+a {
+    color: #0069d6;
+}
+a:hover {
+    color: #0050a3;
+    text-decoration: none;
+}
+a img {
+    border: none;
+}
+p {
+    margin-bottom: 9px;
+}
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    color: #404040;
+    line-height: 36px;
+}
+h1 {
+    margin-bottom: 18px;
+    font-size: 30px;
+}
+h2 {
+    font-size: 24px;
+}
+h3 {
+    font-size: 18px;
+}
+h4 {
+    font-size: 16px;
+}
+h5 {
+    font-size: 14px;
+}
+h6 {
+    font-size: 13px;
+}
+hr {
+    margin: 0 0 19px;
+    border: 0;
+    border-bottom: 1px solid #ccc;
+}
+blockquote {
+    padding: 13px 13px 21px 15px;
+    margin-bottom: 18px;
+    font-family:georgia,serif;
+    font-style: italic;
+}
+blockquote:before {
+    content:"\201C";
+    font-size:40px;
+    margin-left:-10px;
+    font-family:georgia,serif;
+    color:#eee;
+}
+blockquote p {
+    font-size: 14px;
+    font-weight: 300;
+    line-height: 18px;
+    margin-bottom: 0;
+    font-style: italic;
+}
+code, pre {
+    font-family: Monaco, Andale Mono, Courier New, monospace;
+}
+code {
+    background-color: #fee9cc;
+    color: rgba(0, 0, 0, 0.75);
+    padding: 1px 3px;
+    font-size: 12px;
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
+}
+pre {
+    display: block;
+    padding: 14px;
+    margin: 0 0 18px;
+    line-height: 16px;
+    font-size: 11px;
+    border: 1px solid #d9d9d9;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+pre code {
+    background-color: #fff;
+    color:#737373;
+    font-size: 11px;
+    padding: 0;
+}
+@media screen and (min-width: 914px) {
+    body {
+        width: 854px;
+        margin:10px auto;
+    }
+}
+@media print {
+	body,code,pre code,h1,h2,h3,h4,h5,h6 {
+		color: black;
+	}
+	table, pre {
+		page-break-inside: avoid;
+	}
+}
+</style>
+<title>AppConfig V3.1 - Application configuration the easy way</title>
+
+</head>
+<body>
+<h1>AppConfig V3.1 - Application configuration the easy way</h1>
 
 <h2>A thin wrapper for Apache Commons Configuration</h2>
 
@@ -6,9 +156,9 @@
 
 <h2>Introduction</h2>
 
-<p>AppConfig is designed to provide painless configuration for multiple runtime environments based on a model similar to the Ruby-on-Rails &#39;development/production/test&#39; approach with all the appropriate defaulting and overriding of settings.</p>
+<p>AppConfig is designed to provide painless configuration for multiple runtime environments based on a model similar to the Ruby-on-Rails 'development/production/test' approach with all the appropriate defaulting and overriding of settings.</p>
 
-<p>It is particularly targeted at the problem of configuring components and applications &#39;from the outside&#39; without needing to modify the packaged artifact.</p>
+<p>It is particularly targeted at the problem of configuring components and applications 'from the outside' without needing to modify the packaged artifact.</p>
 
 <p>If certain conventions are observed, it can also independently manage configurations for multiple AppConfig-enabled components within a single application.</p>
 
@@ -16,7 +166,7 @@
 
 <h2>Typical usage</h2>
 
-<p>Suppose the settings for a component or a program that&#39;s been built with AppConfig support need to be changed.</p>
+<p>Suppose the settings for a component or a program that's been built with AppConfig support need to be changed.</p>
 
 <h3>Create a configuration directory</h3>
 
@@ -33,11 +183,12 @@
 <li>log4j-[environment].properties</li>
 </ul>
 
-<p>Where &#39;environment&#39; is one of &#39;development&#39;,&#39;production&#39; or &#39;test&#39;. The contents of the files follow Java Property file syntax. </p>
 
-<p>Override whatever settings need to be changed in the appropriate file. </p>
+<p>Where 'environment' is one of 'development','production' or 'test'. The contents of the files follow Java Property file syntax.</p>
 
-<pre><code>e.g. Change development database connection settings for your machine in &#39;database-development.properties&#39;
+<p>Override whatever settings need to be changed in the appropriate file.</p>
+
+<pre><code>e.g. Change development database connection settings for your machine in 'database-development.properties'
 </code></pre>
 
 <h3>Tell AppConfig where the directory is</h3>
@@ -65,13 +216,13 @@
        -Dcom.verymuchme.appconfig.runTimeEnvironment=production ...
 </code></pre>
 
-<p>By default, AppConfig assumes you&#39;re running in &#39;development&#39; mode.</p>
+<p>By default, AppConfig assumes you're running in 'development' mode.</p>
 
 <h3>Run your program</h3>
 
-<p>When you run the program, your modified settings will be picked up automatically, will override the default settings and be used to configure the program. </p>
+<p>When you run the program, your modified settings will be picked up automatically, will override the default settings and be used to configure the program.</p>
 
-<h2>That&#39;s it!!</h2>
+<h2>That's it!!</h2>
 
 <h2>Demo</h2>
 
@@ -98,9 +249,9 @@ java -cp ./target/basic_jar-1.0-SNAPSHOT-jar-with-dependencies.jar com.example.d
 
 <h2>(Some of) the gory details</h2>
 
-<p>AppConfig is designed to provide painless configuration for multiple runtime environments based on a model similar to the Ruby-on-Rails &#39;development/production/test&#39; approach with all the appropriate defaulting and overriding of settings.</p>
+<p>AppConfig is designed to provide painless configuration for multiple runtime environments based on a model similar to the Ruby-on-Rails 'development/production/test' approach with all the appropriate defaulting and overriding of settings.</p>
 
-<p>It is particularly targeted at the problem of configuring components and applications &#39;from the outside&#39; without needing to modify the packaged artifact.</p>
+<p>It is particularly targeted at the problem of configuring components and applications 'from the outside' without needing to modify the packaged artifact.</p>
 
 <p>It is based on Apache Commons Configuration http://commons.apache.org/configuration .</p>
 
@@ -109,8 +260,8 @@ java -cp ./target/basic_jar-1.0-SNAPSHOT-jar-with-dependencies.jar com.example.d
 <h4>Initialize AppConfig</h4>
 
 <pre><code>  AppConfig appConfig = new AppConfig();
-  appConfig.setApplicationPropertiesPackageName(&quot;your base package name&quot;);
-  appConfig.setExternalConfigurationDirectory(&quot;configuration directory name&quot;);
+  appConfig.setApplicationPropertiesPackageName("your base package name");
+  appConfig.setExternalConfigurationDirectory("configuration directory name");
   appConfig.configure();
 </code></pre>
 
@@ -118,20 +269,20 @@ java -cp ./target/basic_jar-1.0-SNAPSHOT-jar-with-dependencies.jar com.example.d
 
 <h5>Where to put configuration files</h5>
 
-<p>Configuration files should be stored at the root of your package. </p>
+<p>Configuration files should be stored at the root of your package.</p>
 
-<p><strong>Do NOT</strong> place them at the root your source tree. If you do, unpredictable things will happen when you try to load configuations in a project containing multiple AppConfig-enabled components. </p>
+<p><strong>Do NOT</strong> place them at the root your source tree. If you do, unpredictable things will happen when you try to load configuations in a project containing multiple AppConfig-enabled components.</p>
 
 <p>Example:</p>
 
-<p>AppConfig itself is a Maven-based package with a base package of &#39;com.verymuchme.appconfig&#39;. So, configuration files would be placed in:</p>
+<p>AppConfig itself is a Maven-based package with a base package of 'com.verymuchme.appconfig'. So, configuration files would be placed in:</p>
 
 <pre><code>./src/main/resources/com/verymuchme/appconfig
 </code></pre>
 
 <h4>Configurations load sequence</h4>
 
-<p>The following files will be automatically loaded in the order shown. </p>
+<p>The following files will be automatically loaded in the order shown.</p>
 
 <pre><code>  application-development.properties (optional)
   database-development.properties (optional)
@@ -150,9 +301,10 @@ java -cp ./target/basic_jar-1.0-SNAPSHOT-jar-with-dependencies.jar com.example.d
 <li>any jars in the system classpath</li>
 </ul>
 
-<p>Following the Apache Commons Configuration convention, if the same key found in multiple files, the value from the first file found and loaded wins. So, in this case, &#39;development&#39; trumps &#39;defsults&#39; - just the desired behavior.</p>
 
-<p>In general, if a file is shown, it must be present in one of the locations or an exception will be thrown. It may be empty. &#39;Optional&#39; indicates that the file can be absent. </p>
+<p>Following the Apache Commons Configuration convention, if the same key found in multiple files, the value from the first file found and loaded wins. So, in this case, 'development' trumps 'defsults' - just the desired behavior.</p>
+
+<p>In general, if a file is shown, it must be present in one of the locations or an exception will be thrown. It may be empty. 'Optional' indicates that the file can be absent.</p>
 
 <h3>And configuration settings are available</h3>
 
@@ -160,7 +312,7 @@ java -cp ./target/basic_jar-1.0-SNAPSHOT-jar-with-dependencies.jar com.example.d
 
 // See AppConfig javadocs or Apache Commons Configuration API docs for more information 
 // http://commons.apache.org/configuration/apidocs/index.html
-String configurationValue = configuration.getString(&quot;some property name&quot;); 
+String configurationValue = configuration.getString("some property name"); 
 </code></pre>
 
 <h3>Logging</h3>
@@ -178,7 +330,7 @@ public class SomeClass {
   …
   public void someMethod() {
     …
-    logger.debug(&quot;Some significant message&quot;);
+    logger.debug("Some significant message");
     …
   }
   …
@@ -213,57 +365,60 @@ public class SomeClass {
 
 <h3>Changing logging and configuration implementations</h3>
 
-<p>Both the logging and configuration implementations can be changed. </p>
+<p>Both the logging and configuration implementations can be changed.</p>
 
-<p>Because AppConfig follows its own configuration model, it can be configured from the outside, and doesn&#39;t require a rebuild of the package to add new support. </p>
+<p>Because AppConfig follows its own configuration model, it can be configured from the outside, and doesn't require a rebuild of the package to add new support.</p>
 
 <h4>Logging</h4>
 
 <p>To change logging support:</p>
 
 <ul>
-<li>Create a class which implements the &#39;LoggingHelper&quot; interface </li>
-<li>Override the internal setting &quot;com.verymuchme.appconfig.loggingHelper.className&quot; (See below)</li>
-<li>Consider changing the setting &quot;com.verymuchme.appconfig.logging.ConfigurationPrefix&quot; (See below)</li>
+<li>Create a class which implements the 'LoggingHelper" interface</li>
+<li>Override the internal setting "com.verymuchme.appconfig.loggingHelper.className" (See below)</li>
+<li>Consider changing the setting "com.verymuchme.appconfig.logging.ConfigurationPrefix" (See below)</li>
 </ul>
+
 
 <h4>Configuration</h4>
 
 <p>To change configuration support:</p>
 
 <ul>
-<li>Create a builder class which implements the &#39;ConfigurationBuilder&quot; interface extending &quot;ConfigurationBuilderBase&quot;</li>
-<li>Create a configuration class which implements the &#39;Configuration&quot; interface, extending &quot;ConfigurationBase&quot;</li>
-<li>Override the internal setting &quot;com.verymuchme.appconfig.configurationBuilder.className&quot; (See below)</li>
+<li>Create a builder class which implements the 'ConfigurationBuilder" interface extending "ConfigurationBuilderBase"</li>
+<li>Create a configuration class which implements the 'Configuration" interface, extending "ConfigurationBase"</li>
+<li>Override the internal setting "com.verymuchme.appconfig.configurationBuilder.className" (See below)</li>
 </ul>
+
 
 <h3>Error handling</h3>
 
-<p>Application or component configuration normally happens at point where the artifact starts. It&#39;s also usually the case that a problem with the configuration is serious if not fatal.</p>
+<p>Application or component configuration normally happens at point where the artifact starts. It's also usually the case that a problem with the configuration is serious if not fatal.</p>
 
-<p>That assumption led to two simple decisions. </p>
+<p>That assumption led to two simple decisions.</p>
 
 <ul>
 <li>If AppConfig encounters a problem when configuring the artifact, it will log the problem and throw an exception.</li>
 <li>All exceptions are wrapped with AppConfigException - <strong>an unchecked, Runtime exception</strong>.</li>
 </ul>
 
+
 <p>So, a try/catch is needed around the AppConfig initialization (as shown below) if the code wants to detect configuration errors and exit gracefully.</p>
 
 <pre><code>  try {
     AppConfig appConfig = new AppConfig();
-    appConfig.setApplicationPropertiesPackageName(&quot;your base package name&quot;);
-    appConfig.setExternalConfigurationDirectory(&quot;configuration directory name&quot;);
+    appConfig.setApplicationPropertiesPackageName("your base package name");
+    appConfig.setExternalConfigurationDirectory("configuration directory name");
     appConfig.configure();
    }
    catch (AppConfigException ace) {
      try {
-      logger.error(&quot;App failed to configure properly. Exiting abnormally&quot;,ace);
+      logger.error("App failed to configure properly. Exiting abnormally",ace);
       System.exit(1);  // Exit with error code
      }
      catch (Exception ee) {
-       // Can&#39;t be sure that logging was configured successfully if app configuration failed
-       System.out.println(&quot;App failed to configure properly. Logging apparently not configured. Exiting abnormally&quot;);
+       // Can't be sure that logging was configured successfully if app configuration failed
+       System.out.println("App failed to configure properly. Logging apparently not configured. Exiting abnormally");
        System.out.println(e.getMessage());
        e.printStackTrace(System.out);
        System.exit(2);  // Exit with error code
@@ -273,7 +428,7 @@ public class SomeClass {
 
 <h3>Overriding default behaviors</h3>
 
-<p>Most AppConfig internal behaviors can be overriden with appropriate feature switches. </p>
+<p>Most AppConfig internal behaviors can be overriden with appropriate feature switches.</p>
 
 <p>The value of a particular feature switch is determined hierarchically, with the first value found for a particular setting being used. The searcn order in which the switch settings are examined is:</p>
 
@@ -281,24 +436,29 @@ public class SomeClass {
 <li>Internal, programmatically defined options
 
 <ul>
-<li>Specified when initializing AppConfig using the &#39;appConfig.setOptions(..)&#39; syntax</li>
-</ul></li>
+<li>Specified when initializing AppConfig using the 'appConfig.setOptions(..)' syntax</li>
+</ul>
+</li>
 <li>Command-line options
 
 <ul>
-<li>Specified using JVM &#39;-D[setting name]=[setting value]&#39; syntax</li>
-</ul></li>
+<li>Specified using JVM '-D[setting name]=[setting value]' syntax</li>
+</ul>
+</li>
 <li>Environment settings
 
 <ul>
-<li>Specified using &#39;export [setting name]=[setting value]&#39; syntax or equivalent</li>
-</ul></li>
+<li>Specified using 'export [setting name]=[setting value]' syntax or equivalent</li>
+</ul>
+</li>
 <li>Internal default value
 
 <ul>
 <li>Default internal settings are managed as property files so property File syntax applies</li>
-</ul></li>
 </ul>
+</li>
+</ul>
+
 
 <p><strong>The setting name is the same in all cases.</strong></p>
 
@@ -309,15 +469,15 @@ public class SomeClass {
 #
 # Property values are specified with a slightly extended property syntax
 # 
-# &quot;true&quot; / &quot;false&quot; are recognized as boolean values
-# &quot;null&quot; is recognized as the null value
+# "true" / "false" are recognized as boolean values
+# "null" is recognized as the null value
 # a comma delimited list of values is recognized as an array of string values
 # 
 
-# File name for internal default properties - only specify a value to override the default &#39;internal-defaults.properties&#39;
+# File name for internal default properties - only specify a value to override the default 'internal-defaults.properties'
 com.verymuchme.appconfig.internalDefaultPropertiesFileName = null
 
-# Include the Apache Commons Configuration definition file to include the &quot;&lt;system/&gt;&quot; element as the first definition
+# Include the Apache Commons Configuration definition file to include the "&lt;system/&gt;" element as the first definition
 com.verymuchme.appconfig.systemPropertiesOverride = false
 
 # Allowed run time environment names
@@ -381,13 +541,28 @@ application.logging.contextClass = null
 
 # For Spring Apps, application context
 application.applicationContext = null
+
+# When the application is a web application is running in a web container and the configuration needs to be 
+# sensitive to a specific application instance, this setting uses the ServletContext.contextPath to   
+# differentiate amongst configurations for application instances.
+# The setting only affects external configurations. If set, the context path will be added to the external 
+# configuration directory path and the resulting path will be used as the base by which 
+# to find applicable configuration files.
+#
+# The contextPath must be passed to AppConfig as an option at application initialization time 
+# using the setting  'com.verymuchme.appconfig.contextPath' 
+#
+com.verymuchme.appconfig.externalConfigurationDirectory.useContextPathAsSuffix = false
+
+# For web applications, the contextPath at application initialization time - ServletContext.getContextPath()
+application.contextPath = null
 </code></pre>
 
 <h4>Changing the configuration template</h4>
 
-<p>Apache Commons Configuration uses the concept of a configuration definition file. At its heart, all AppConfig is doing is generating a customized configuration definition file and passing it to Apache Commons Configuration to load application and database properties. </p>
+<p>Apache Commons Configuration uses the concept of a configuration definition file. At its heart, all AppConfig is doing is generating a customized configuration definition file and passing it to Apache Commons Configuration to load application and database properties.</p>
 
-<p>If the default template in AppConfig isn&#39;t suitable, it can be changed by setting the internal setting &#39;com.verymuchme.appconfig.configurationTemplateName&#39; to point to another template. The template is a Freemarker template. Have a look at the AppConfig source before making a change to see what settings are passed to the template.</p>
+<p>If the default template in AppConfig isn't suitable, it can be changed by setting the internal setting 'com.verymuchme.appconfig.configurationTemplateName' to point to another template. The template is a Freemarker template. Have a look at the AppConfig source before making a change to see what settings are passed to the template.</p>
 
 <p>Note that, because of loading issues, logging configuration is handled separately.</p>
 
@@ -395,7 +570,7 @@ application.applicationContext = null
 
 <p>Settings internal to AppConfig itself (the list above) can be accessed from the application configuration object. For instance, to get the current runtime environment:</p>
 
-<pre><code>configuration.getString(&quot;com.verymuchme.appconfig.runTimeEnvironment&quot;);
+<pre><code>configuration.getString("com.verymuchme.appconfig.runTimeEnvironment");
 </code></pre>
 
 <h3>AppConfig Source</h3>
@@ -417,6 +592,8 @@ application.applicationContext = null
 &lt;dependency&gt;
   &lt;groupId&gt;com.verymuchme.appconfig&lt;/groupId&gt;
   &lt;artifactId&gt;app_config&lt;/artifactId&gt;
-  &lt;version&gt;3.0&lt;/version&gt;
+  &lt;version&gt;3.1.0&lt;/version&gt;
 &lt;/dependency&gt;
 </code></pre>
+</body>
+</html>

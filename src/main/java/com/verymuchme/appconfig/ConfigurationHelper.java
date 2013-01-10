@@ -141,9 +141,27 @@ public class ConfigurationHelper {
       throw new AppConfigException(errorMessage,e);
     }
     
+    // Process the properties post-load 
+    postProcessProperties(internalProperties);
+    
     return internalProperties;
   }
-  
+
+  /*
+   * Do any needed post-processing on the internal properties immediately after load
+   */
+  private void postProcessProperties(ExtendedProperties internalProperties) {
+    // Make the externalConfigurationDirectory web-app aware if needed
+    String externalConfigurationDirectory = internalProperties.getProperty(InternalConfigurationConstants.EXTERNAL_CONFIGURATION_DIRECTORY_PROPERTY_NAME);
+    Boolean useContextPathAsSuffix = internalProperties.getBooleanProperty(InternalConfigurationConstants.USE_CONTEXT_PATH_AS_SUFFIX_PROPERTY_NAME);
+    if (useContextPathAsSuffix == null) useContextPathAsSuffix = Boolean.FALSE;
+    String contextPath = internalProperties.getProperty(InternalConfigurationConstants.CONTEXT_PATH_PROPERTY_NAME);
+    if (externalConfigurationDirectory != null && useContextPathAsSuffix && (contextPath != null)) {
+      externalConfigurationDirectory = externalConfigurationDirectory + contextPath;
+      internalProperties.setProperty(InternalConfigurationConstants.EXTERNAL_CONFIGURATION_DIRECTORY_PROPERTY_NAME,externalConfigurationDirectory);
+    }
+  }
+
   /** 
    * Check the run-time environment. Defaults to 'development' if any errors during setting
    * 
