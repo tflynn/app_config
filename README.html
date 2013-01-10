@@ -203,6 +203,23 @@ pre code {
 <pre><code>  java -Dcom.verymuchme.appconfig.externalConfigurationDirectory=~/local_appconfig ...
 </code></pre>
 
+<h3>For (multiple) web applications in the same container</h3>
+
+<p>Enable this setting when running multiple web applications in the same container. This causes the servlet context to be appended to the external configuration directory. This provides a separate configuration directory per web application.</p>
+
+<p>Either</p>
+
+<pre><code>export com.verymuchme.appconfig.externalConfigurationDirectory.useContextPathAsSuffix=true
+</code></pre>
+
+<p>Or</p>
+
+<pre><code>java -Dcom.verymuchme.appconfig.externalConfigurationDirectory.useContextPathAsSuffix=true=true \
+     -Dcom.verymuchme.appconfig.externalConfigurationDirectory=~/local_appconfig ...
+</code></pre>
+
+<p>Note that the application must have been built so that the contextPath is passed to AppConfig as an option at application initialization time using the setting  'application.contextPath'.</p>
+
 <h3>(Production only) Tell AppConfig to load production configurations</h3>
 
 <p>Either</p>
@@ -262,6 +279,9 @@ java -cp ./target/basic_jar-1.0-SNAPSHOT-jar-with-dependencies.jar com.example.d
 <pre><code>  AppConfig appConfig = new AppConfig();
   appConfig.setApplicationPropertiesPackageName("your base package name");
   appConfig.setExternalConfigurationDirectory("configuration directory name");
+  HashMap&lt;String,Object&gt; configurationOptions = new HashMap&lt;String,Object&gt;();
+  configurationOptions.put("application.contextPath",servletContext.getContextPath()); // Web app only
+  appConfig.setOptions(configurationOptions);
   appConfig.configure();
 </code></pre>
 
@@ -536,21 +556,21 @@ com.verymuchme.appconfig.loggingHelper.className = com.verymuchme.appconfig.Logg
 # Default ConfigurationBuilder class name
 com.verymuchme.appconfig.configurationBuilder.className = com.verymuchme.appconfig.ConfigurationBuilderCommonsConfiguration
 
-# Context class for loading logging properties. If null, configuration files loaded relative to internal logging configuration
+# Context class for loading logging properties. If null, configuration files loaded relative to 
+# internal logging configuration
 application.logging.contextClass = null
 
 # For Spring Apps, application context
 application.applicationContext = null
 
-# When the application is a web application is running in a web container and the configuration needs to be 
-# sensitive to a specific application instance, this setting uses the ServletContext.contextPath to   
-# differentiate amongst configurations for application instances.
-# The setting only affects external configurations. If set, the context path will be added to the external 
-# configuration directory path and the resulting path will be used as the base by which 
-# to find applicable configuration files.
+# If there is more than one AppConfig-enabled web application running in the same container, 
+# each application needs to be configured separately.
 #
+# Enable this setting to cause the servlet context to be appended to the external configuration directory.
+# This provides a separate configuration directory per web application.
+# 
 # The contextPath must be passed to AppConfig as an option at application initialization time 
-# using the setting  'com.verymuchme.appconfig.contextPath' 
+# using the setting  'application.contextPath' 
 #
 com.verymuchme.appconfig.externalConfigurationDirectory.useContextPathAsSuffix = false
 

@@ -47,6 +47,22 @@ or
 
       java -Dcom.verymuchme.appconfig.externalConfigurationDirectory=~/local_appconfig ...
       
+### For (multiple) web applications in the same container
+
+Enable this setting when running multiple web applications in the same container. This causes the servlet context to be appended to the external configuration directory. This provides a separate configuration directory per web application.
+
+Either
+
+    export com.verymuchme.appconfig.externalConfigurationDirectory.useContextPathAsSuffix=true
+    
+Or
+
+    java -Dcom.verymuchme.appconfig.externalConfigurationDirectory.useContextPathAsSuffix=true=true \
+         -Dcom.verymuchme.appconfig.externalConfigurationDirectory=~/local_appconfig ...
+
+Note that the application must have been built so that the contextPath is passed to AppConfig as an option at application initialization time using the setting  'application.contextPath'.
+
+
 ### (Production only) Tell AppConfig to load production configurations
 
 Either
@@ -59,6 +75,8 @@ or
            -Dcom.verymuchme.appconfig.runTimeEnvironment=production ...
       
 By default, AppConfig assumes you're running in 'development' mode.
+
+
 
 ### Run your program
 
@@ -102,6 +120,9 @@ It is based on Apache Commons Configuration http://commons.apache.org/configurat
       AppConfig appConfig = new AppConfig();
       appConfig.setApplicationPropertiesPackageName("your base package name");
       appConfig.setExternalConfigurationDirectory("configuration directory name");
+      HashMap<String,Object> configurationOptions = new HashMap<String,Object>();
+      configurationOptions.put("application.contextPath",servletContext.getContextPath()); // Web app only
+      appConfig.setOptions(configurationOptions);
       appConfig.configure();
 
 (See error handling information below)
@@ -341,21 +362,21 @@ The following internal settings are available:
     # Default ConfigurationBuilder class name
     com.verymuchme.appconfig.configurationBuilder.className = com.verymuchme.appconfig.ConfigurationBuilderCommonsConfiguration
     
-    # Context class for loading logging properties. If null, configuration files loaded relative to internal logging configuration
+    # Context class for loading logging properties. If null, configuration files loaded relative to 
+    # internal logging configuration
     application.logging.contextClass = null
     
     # For Spring Apps, application context
     application.applicationContext = null
 
-    # When the application is a web application is running in a web container and the configuration needs to be 
-    # sensitive to a specific application instance, this setting uses the ServletContext.contextPath to   
-    # differentiate amongst configurations for application instances.
-    # The setting only affects external configurations. If set, the context path will be added to the external 
-    # configuration directory path and the resulting path will be used as the base by which 
-    # to find applicable configuration files.
+    # If there is more than one AppConfig-enabled web application running in the same container, 
+    # each application needs to be configured separately.
     #
+    # Enable this setting to cause the servlet context to be appended to the external configuration directory.
+    # This provides a separate configuration directory per web application.
+    # 
     # The contextPath must be passed to AppConfig as an option at application initialization time 
-    # using the setting  'com.verymuchme.appconfig.contextPath' 
+    # using the setting  'application.contextPath' 
     #
     com.verymuchme.appconfig.externalConfigurationDirectory.useContextPathAsSuffix = false
     
