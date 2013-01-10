@@ -57,7 +57,7 @@ Either
     
 Or
 
-    java -Dcom.verymuchme.appconfig.externalConfigurationDirectory.useContextPathAsSuffix=true=true \
+    java -Dcom.verymuchme.appconfig.externalConfigurationDirectory.useContextPathAsSuffix=true \
          -Dcom.verymuchme.appconfig.externalConfigurationDirectory=~/local_appconfig ...
 
 Note that the application must have been built so that the contextPath is passed to AppConfig as an option at application initialization time using the setting  'application.contextPath'.
