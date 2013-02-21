@@ -26,8 +26,9 @@ import java.util.Properties;
 
 import org.apache.commons.configuration.CombinedConfiguration;
 import org.apache.commons.configuration.DefaultConfigurationBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import ch.qos.logback.classic.LogbackFactory;
+import ch.qos.logback.classic.Logger;
 
 import com.google.common.base.Optional;
 
@@ -45,7 +46,7 @@ public class ConfigurationBuilderCommonsConfiguration extends ConfigurationBuild
   /*
    * Logger instance for this class
    */
-  private static final Logger logger = LoggerFactory.getLogger(ConfigurationBuilderCommonsConfiguration.class);
+  private static final Logger logger = LogbackFactory.getLogger(ConfigurationBuilderCommonsConfiguration.class);
   
   /**
    * Create a new instance

@@ -16,18 +16,11 @@ package com.verymuchme.appconfig;
 
 import static org.junit.Assert.assertTrue;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 
-import org.apache.commons.configuration.Configuration;
-import org.apache.commons.configuration.ConfigurationException;
-import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+
 
 import org.apache.commons.configuration.DefaultConfigurationBuilder;
 
@@ -90,7 +83,7 @@ public class FreemarkerHandlerTest {
     if (!internalLoggingIntiialized) {
       //announceStart("AppConfigTest.initializer");
       logger = new TestLogger();
-      logger.configureDynamically(INTERNAL_LOGGING_LEVEL);
+      logger.setLevelString(INTERNAL_LOGGING_LEVEL);
       //announceEnd("AppConfigTest.initializer");
       internalLoggingIntiialized = true;
     }

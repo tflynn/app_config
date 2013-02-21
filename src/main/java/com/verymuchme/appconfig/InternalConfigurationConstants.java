@@ -45,9 +45,11 @@ public class InternalConfigurationConstants {
   public static final String DEFAULT_DATABASE_CONFIGURATION_ENABLED_PROPERTY_NAME = "com.verymuchme.appconfig.database.defaultConfigurationEnabled";
   
   public static final String LOGGING_CONFIGURATION_NAME_PREFIX_PROPERTY_NAME = "com.verymuchme.appconfig.logging.ConfigurationPrefix";
-  public static final String DEFAULT_LOG4J_CONFIGURATION_ENABLED_PROPERTY_NAME = "com.verymuchme.appconfig.log4j.defaultConfigurationEnabled";
+  public static final String DEFAULT_LOGBACK_CONFIGURATION_ENABLED_PROPERTY_NAME = "com.verymuchme.appconfig.logback.defaultConfigurationEnabled";
   
   public static final String CONFIGURATION_NAME_SUFFIX_PROPERTY_NAME = "com.verymuchme.appconfig.configurationNameSuffix";
+  
+  public static final String LOGGING_CONFIGURATION_NAME_SUFFIX_PROPERTY_NAME = "com.verymuchme.appconfig.loggingConfigurationNameSuffix";
   
   public static final String DEFAULT_CONFIGURATION_NAME_PROPERTY_NAME = "com.verymuchme.appconfig.defaultConfigurationName";
   
@@ -58,7 +60,7 @@ public class InternalConfigurationConstants {
   public static final String INTERNAL_LOGGING_CONFIGURATION_FILE_PROPERTY_NAME = "com.verymuchme.appconfig.logging.internalConfigurationFileName";
   
   public static final String DEFAULT_LOGGING_HELPER_CLASS_NAME_PROPERTY_NAME = "com.verymuchme.appconfig.loggingHelper.className";
-  public static final String DEFAULT_LOGGING_HELPER_CLASS_NAME = "com.verymuchme.appconfig.LoggingHelperLog4j";
+  public static final String DEFAULT_LOGGING_HELPER_CLASS_NAME = "com.verymuchme.appconfig.LoggingHelperLogback";
   public static final String DEFAULT_BOOTSTRAP_LOGGING_LEVEL_PROPERTY_NAME = "com.verymuchme.appconfig.boostrapLogging.logLevel";
   public static final String DEFAULT_BOOTSTRAP_LOGGING_LEVEL = "ERROR";
 

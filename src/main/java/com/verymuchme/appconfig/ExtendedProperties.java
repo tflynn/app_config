@@ -23,8 +23,9 @@ import java.util.Iterator;
 import java.util.Properties;
 import java.util.Set;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import ch.qos.logback.classic.LogbackFactory;
+import ch.qos.logback.classic.Logger;
+
 
 import com.google.common.base.Optional;
 
@@ -315,7 +316,7 @@ public class ExtendedProperties {
    * @param activeLogger
    */
   public static void setActiveLogger(Logger activeLogger) {
-    logger = activeLogger == null ? LoggerFactory.getLogger(ExtendedProperties.class) : activeLogger;
+    logger = activeLogger == null ? LogbackFactory.getLogger(ExtendedProperties.class) : activeLogger;
   }
   
   /**
@@ -350,7 +351,5 @@ public class ExtendedProperties {
       printStream.println(String.format("%s = %s",propertyName, propertyValue));
     }
   }
-  
-  
   
 }

@@ -23,8 +23,8 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import ch.qos.logback.classic.LogbackFactory;
+import ch.qos.logback.classic.Logger;
 
 /**
  * Useful string conversion tools
@@ -44,7 +44,7 @@ public class AppConfigUtils {
   public static final String DEFAULT_LIST_SEPARATOR = ",";
   
   public static final String STRING_VALUE_NULL = "null";
-
+  
   /**
    * Get a string as a boolean. 
    * Returns the value true if the string argument is not null and is equal, ignoring case, to the string "true". 
@@ -265,8 +265,7 @@ public class AppConfigUtils {
    * @param activeLogger
    */
   public static void setActiveLogger(Logger activeLogger) {
-    logger = activeLogger == null ? LoggerFactory.getLogger(AppConfigUtils.class) : activeLogger;
+    logger = activeLogger == null ? LogbackFactory.getLogger(AppConfigUtils.class) : activeLogger;
   }
   
-
 }

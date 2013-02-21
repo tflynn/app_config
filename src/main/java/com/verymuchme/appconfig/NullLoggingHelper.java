@@ -23,7 +23,7 @@ package com.verymuchme.appconfig;
  */
 import java.util.List;
 
-import org.slf4j.Logger;
+import ch.qos.logback.classic.Logger;
 
 public class NullLoggingHelper implements LoggingHelper {
   
@@ -68,43 +68,31 @@ public class NullLoggingHelper implements LoggingHelper {
   @Override
   public void bootstrapInternalLogging(String loggerName,
       String loggingLevelString) {
-    // TODO Auto-generated method stub
-    
   }
 
   @Override
   public void configureLoggerFromConfigurationFile(
       String loggingConfigurationFileName, String loggingLevel,
       Logger errorLogger) {
-    // TODO Auto-generated method stub
-    
   }
 
   @Override
   public void configureLoggerFromConfigurationFiles(
       List<String> loggingConfigurationFileNames) {
-    // TODO Auto-generated method stub
-    
   }
 
   @Override
   public void overrideLogLevel(String loggerName, String loggingLevel) {
-    // TODO Auto-generated method stub
-    
   }
 
   @Override
   public void configureLoggerFromConfigurationFile(
       String loggingConfigurationFileName, String loggingLevel,
       Logger activeLogger, Class classContext) {
-    // TODO Auto-generated method stub
-    
   }
 
   @Override
   public void setExtendedProperties(ExtendedProperties extendedProperties) {
-    // TODO Auto-generated method stub
-    
   }
   
 }

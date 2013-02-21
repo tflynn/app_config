@@ -21,8 +21,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import ch.qos.logback.classic.LogbackFactory;
+import ch.qos.logback.classic.Logger;
+
 
 /**
  * Utility methods used for building configurations
@@ -198,8 +199,8 @@ public class ConfigurationHelper {
     List<String> configNames = new ArrayList<String>();
     
     String packageDir = internalProperties.getProperty(InternalConfigurationConstants.APPLICATION_PROPERTIES_PACKAGE_DIR_PROPERTY_NAME);
-    String suffix = internalProperties.getProperty(InternalConfigurationConstants.CONFIGURATION_NAME_SUFFIX_PROPERTY_NAME);
-    String log4jPrefix = internalProperties.getProperty(InternalConfigurationConstants.LOGGING_CONFIGURATION_NAME_PREFIX_PROPERTY_NAME);
+    String suffix = internalProperties.getProperty(InternalConfigurationConstants.LOGGING_CONFIGURATION_NAME_SUFFIX_PROPERTY_NAME);
+    String loggingPrefix = internalProperties.getProperty(InternalConfigurationConstants.LOGGING_CONFIGURATION_NAME_PREFIX_PROPERTY_NAME);
     String rtEnv = internalProperties.getProperty(InternalConfigurationConstants.RUN_TIME_ENVIRONMENT_PROPERTY_NAME);
     String defaultPropName = internalProperties.getProperty(InternalConfigurationConstants.DEFAULT_CONFIGURATION_NAME_PROPERTY_NAME);
     String externalConfigurationDirectory = internalProperties.getProperty(InternalConfigurationConstants.EXTERNAL_CONFIGURATION_DIRECTORY_PROPERTY_NAME);
@@ -213,20 +214,20 @@ public class ConfigurationHelper {
     
     if (externalConfigurationDirectory != null ) {
       String confDir = externalConfigurationDirectory;
-      String extLog4jDef = String.format("%s/%s-%s.%s",confDir,log4jPrefix,rtEnv,suffix);
-      configNames.add(extLog4jDef);
+      String extLoggingDef = String.format("%s/%s-%s.%s",confDir,loggingPrefix,rtEnv,suffix);
+      configNames.add(extLoggingDef);
     }
-    String log4jDef = String.format("%s%s-%s.%s",pathPrefix == null ? "" : pathPrefix ,log4jPrefix,rtEnv,suffix);
-    configNames.add(log4jDef);
+    String loggingDef = String.format("%s%s-%s.%s",pathPrefix == null ? "" : pathPrefix ,loggingPrefix,rtEnv,suffix);
+    configNames.add(loggingDef);
 
-    boolean includeLog4jDefault = internalProperties.getBooleanProperty(InternalConfigurationConstants.DEFAULT_LOG4J_CONFIGURATION_ENABLED_PROPERTY_NAME);
-    if (includeLog4jDefault) {
-      String log4jDefault = String.format("%s%s-%s.%s",pathPrefix == null ? "" : pathPrefix,log4jPrefix,defaultPropName,suffix);
-      configNames.add(log4jDefault);
+    boolean includeLogbackDefault = internalProperties.getBooleanProperty(InternalConfigurationConstants.DEFAULT_LOGBACK_CONFIGURATION_ENABLED_PROPERTY_NAME);
+    if (includeLogbackDefault) {
+      String loggingDefault = String.format("%s%s-%s.%s",pathPrefix == null ? "" : pathPrefix,loggingPrefix,defaultPropName,suffix);
+      configNames.add(loggingDefault);
     }
     if (logger.isTraceEnabled()) {
       if (configNames.isEmpty()) {
-        logger.trace(String.format("AppConfig.ConfigurationHelper.generateLoggingConfigurationNames No application log file names generated"));
+      	logger.trace(String.format("AppConfig.ConfigurationHelper.generateLoggingConfigurationNames No application log file names generated"));
       }
       else {
         logger.trace(String.format("AppConfig.ConfigurationHelper.generateLoggingConfigurationNames Application log file names"));
@@ -252,8 +253,7 @@ public class ConfigurationHelper {
    * @param activeLogger
    */
   public static void setActiveLogger(Logger activeLogger) {
-    logger = activeLogger == null ? LoggerFactory.getLogger(ConfigurationHelper.class) : activeLogger;
+    logger = activeLogger == null ? LogbackFactory.getLogger(ConfigurationHelper.class) : activeLogger;
   }
 
-  
 }

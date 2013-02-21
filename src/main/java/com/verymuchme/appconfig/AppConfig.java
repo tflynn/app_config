@@ -17,12 +17,12 @@ package com.verymuchme.appconfig;
 import java.util.HashMap;
 import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import ch.qos.logback.classic.LogbackFactory;
+import ch.qos.logback.classic.Logger;
 
 /**
  * 
- * <h1>AppConfig V3.0 - Application configuration the easy way</h1>
+ * <h1>AppConfig V4.0 - Application configuration the easy way</h1>
  * 
  * <h2>A thin wrapper for Apache Commons Configuration</h2>
  * 
@@ -41,7 +41,7 @@ import org.slf4j.LoggerFactory;
  * <p> See README.html or https://github.com/tflynn/app_config#readme for full documentation.
  * 
  * @author Tracy Flynn
- * @version 3.0
+ * @version 4.0
  * @since 1.0
  */
 public class AppConfig {
@@ -79,19 +79,19 @@ public class AppConfig {
   /*
    * Configuration builder
    */
-  private ConfigurationBuilder configurationBuilder = NullConfigurationBuilder.getInstance();
+  private ConfigurationBuilder configurationBuilder = null;
   
   /*
    * Logging helper instance
    */
-  private LoggingHelper loggingHelper = NullLoggingHelper.getInstance();
+  private LoggingHelper loggingHelper = null;
 
   /*
    * Configuration Helper instance
    */
   private ConfigurationHelper configurationHelper = new ConfigurationHelper();
   
- /**
+  /**
    * Create a new AppConfig instance
    */
   public AppConfig() {
@@ -126,16 +126,16 @@ public class AppConfig {
    */
   public void configure() {
     
-    // Configure logging using internal defaults. Allow override for initial logging level
+
+    // Configure initial logging using internal defaults. Allow override for initial logging level
     String logLevelOverride = (String) this.configurationHelper.getSettingFromOptionsEnvSystem(InternalConfigurationConstants.DEFAULT_BOOTSTRAP_LOGGING_LEVEL_PROPERTY_NAME, this.options);
-    BootstrapLogger bootstrapLogger = new BootstrapLogger();
-    bootstrapLogger.configureDynamically(logLevelOverride);
-    
-    // Use the bootstrap logger until the internal logger is fully configured
-    AppConfig.setActiveLogger(bootstrapLogger);
-    AppConfigUtils.setActiveLogger(bootstrapLogger);
-    ConfigurationHelper.setActiveLogger(bootstrapLogger);
-    ExtendedProperties.setActiveLogger(bootstrapLogger);
+    this.loggingHelper.bootstrapInternalLogging(logLevelOverride);
+
+    // Activate loggers needed for configuration sequence
+    AppConfig.setActiveLogger();
+    AppConfigUtils.setActiveLogger();
+    ConfigurationHelper.setActiveLogger();
+    ExtendedProperties.setActiveLogger();
 
     logger.trace(String.format("AppConfig.configure Added bootstrap internal logging"));
 
@@ -152,23 +152,14 @@ public class AppConfig {
     // Make sure the runtime environment is set
     this.configurationHelper.checkRunTimeEnvironment(this.internalProperties);
     
-    if (logger.isTraceEnabled()) {
-      logger.trace(String.format("AppConfig.configure runtime options and internal properties"));
-      this.internalProperties.dumpProperties();
-    }
+    logger.trace(String.format("AppConfig.configure runtime options and internal properties"));
 
     // Load the real internal logger configuration
     String loggingConfigurationFileName = internalProperties.getProperty(InternalConfigurationConstants.INTERNAL_LOGGING_CONFIGURATION_FILE_PROPERTY_NAME);
     String loggingLevel = internalProperties.getProperty(InternalConfigurationConstants.DEFAULT_LOGGING_LEVEL_PROPERTY_NAME);
     this.loggingHelper.setExtendedProperties(this.internalProperties);
-    this.loggingHelper.configureLoggerFromConfigurationFile(loggingConfigurationFileName,loggingLevel,bootstrapLogger);
+    this.loggingHelper.configureLoggerFromConfigurationFile(loggingConfigurationFileName,loggingLevel);
     this.loggingHelper.overrideLogLevel(this.getClass().getPackage().getName(), loggingLevel);
-
-    // Reset the active logger to the default value in various places
-    AppConfig.setActiveLogger();
-    AppConfigUtils.setActiveLogger();
-    ConfigurationHelper.setActiveLogger();
-    ExtendedProperties.setActiveLogger();
 
     // Generate the configuration
     // Get a ConfigurationBuilder
@@ -185,7 +176,6 @@ public class AppConfig {
     List<String> applicationLoggerConfigurationFileNames = this.configurationHelper.generateLoggingConfigurationNames(this.internalProperties);
     this.loggingHelper.configureLoggerFromConfigurationFiles(applicationLoggerConfigurationFileNames);
     logger.trace(String.format("AppConfig.configure loaded application logging"));
-    
   }
   
   
@@ -283,8 +273,7 @@ public class AppConfig {
     * @param activeLogger
     */
    public static void setActiveLogger(Logger activeLogger) {
-     logger = activeLogger == null ? LoggerFactory.getLogger(AppConfig.class) : activeLogger;
+     logger = activeLogger == null ? LogbackFactory.getLogger(AppConfig.class) : activeLogger;
    }
    
-  
-}
+ }

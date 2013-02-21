@@ -1,5 +1,5 @@
 
-# AppConfig V3.1 - Application configuration the easy way
+# AppConfig V4 - Application configuration the easy way
 
 ## A thin wrapper for Apache Commons Configuration
 
@@ -13,7 +13,7 @@ It is particularly targeted at the problem of configuring components and applica
 
 If certain conventions are observed, it can also independently manage configurations for multiple AppConfig-enabled components within a single application.
 
-It is based on Apache Commons Configuration http://commons.apache.org/configuration .
+It is based on [Apache Commons Configuration](http://commons.apache.org/configuration "Apache Commons Configuration").
 
 ## Typical usage
 
@@ -29,9 +29,9 @@ Put environment-specific settings into the configuration directory in files with
 
 * application-[environemnt].properties
 * database-[environment].properties
-* log4j-[environment].properties
+* logback-[environment].xml
 
-Where 'environment' is one of 'development','production' or 'test'. The contents of the files follow Java Property file syntax. 
+Where 'environment' is one of 'development','production' or 'test'. The contents of the properties files follow Java Property file syntax. The contents of the logback-xxx.xml files follow logback syntax (See [Logback Home](http://logback.qos.ch/ "Logback Home")).
 
 Override whatever settings need to be changed in the appropriate file. 
 
@@ -86,6 +86,8 @@ When you run the program, your modified settings will be picked up automatically
 
 ## Demo
 
+**Not currently up to date**
+
 You can generate a fully functional demo by using the following Maven archetype and instructions:
 
     mvn archetype:generate -DarchetypeRepository=https://github.com/tflynn/mvn-repo-public/raw/master/releases -DarchetypeGroupId=com.verymuchme.archetypes -DarchetypeArtifactId=basic_jar -DarchetypeVersion=1.2 -DgroupId=com.example.demo -DartifactId=basic_jar -DartifactVersion=1.0-SNAPSHOT
@@ -101,9 +103,9 @@ Examine the following files to understand how the application is being configure
     ./src/main/resources/com/example/demo/application-development.properties
     ./src/main/resources/com/example/demo/application-test.properties
     ./src/main/resources/com/example/demo/database-defaults.properties
-    ./src/main/resources/com/example/demo/log4j-defaults.properties
-    ./src/main/resources/com/example/demo/log4j-development.properties
-    ./src/main/resources/com/example/demo/log4j-test.properties
+    ./src/main/resources/com/example/demo/logback-defaults.xml
+    ./src/main/resources/com/example/demo/logback-development.xml
+    ./src/main/resources/com/example/demo/logback-test.xml
 
 ## (Some of) the gory details
 
@@ -111,7 +113,7 @@ AppConfig is designed to provide painless configuration for multiple runtime env
 
 It is particularly targeted at the problem of configuring components and applications 'from the outside' without needing to modify the packaged artifact.
 
-It is based on Apache Commons Configuration http://commons.apache.org/configuration .
+It is based on [Apache Commons Configuration](http://commons.apache.org/configuration "Apache Commons Configuration").
 
 ### Using AppConfig in code
 
@@ -145,10 +147,10 @@ The following files will be automatically loaded in the order shown.
 
       application-development.properties (optional)
       database-development.properties (optional)
-      log4j-development.properties (optional)
       application-defaults.properties 
       database-defaults.properties
-      log4j-defaults.properties (optional)
+      logback-development.xml (optional)
+      logback-defaults.xml (optional)
 
 For each file, the search order is the following:
 
@@ -157,7 +159,7 @@ For each file, the search order is the following:
  * any jars in the classpath
  * any jars in the system classpath
  
-Following the Apache Commons Configuration convention, if the same key found in multiple files, the value from the first file found and loaded wins. So, in this case, 'development' trumps 'defsults' - just the desired behavior.
+Following the Apache Commons Configuration convention, if the same key found in multiple files, the value from the first file found and loaded wins. So, in this case, 'development' trumps 'defaults' - just the desired behavior.
 
 In general, if a file is shown, it must be present in one of the locations or an exception will be thrown. It may be empty. 'Optional' indicates that the file can be absent. 
 
@@ -171,16 +173,16 @@ In general, if a file is shown, it must be present in one of the locations or an
     
 ### Logging
 
-The default logging configuration support assumes that the back-end logging can be configured using Log4j V1 (1.2.17) syntax.  If you use the Slf4j logging front-end, that will be true.
+The default logging configuration support assumes logback (See [Logback Home](http://logback.qos.ch/ "Logback Home")). Note that the 'LogbackFactory' class is a convenience class provided by the AppConfig package. It mirrors the syntax of 'slf4j.LoggerFactory'.
 
 In code, all you need is something similar to:
 
-    import org.slf4j.Logger;
-    import org.slf4j.LoggerFactory;
+    import ch.qos.logback.classic.LogbackFactory;
+	import ch.qos.logback.classic.Logger;
     …
     public class SomeClass {
       …
-      private static final Logger logger = LoggerFactory.getLogger(SomeClass.class);
+      private static final Logger logger = LogbackFactory.getLogger(SomeClass.class);
       …
       public void someMethod() {
         …
@@ -190,28 +192,28 @@ In code, all you need is something similar to:
       …
     }
     
-And in the POM file - or equivalend dependency management
+And in the POM file - or in an equivalent dependency management tool
 
     <dependency>
       <groupId>org.slf4j</groupId>
-      <artifactId>jcl-over-slf4j</artifactId>
-      <version>1.5.8</version>
-    </dependency>
-    <dependency>
-      <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
-      <version>1.5.8</version>
+      <version>1.7.2</version>
     </dependency>
+    
+    <!--  LogBack -->
     <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-log4j12</artifactId>
-      <version>1.5.8</version>
-    </dependency>
+		<groupId>ch.qos.logback</groupId>
+		<artifactId>logback-core</artifactId>
+		<version>1.0.9</version>
+	</dependency>
+	
     <dependency>
-      <groupId>log4j</groupId>
-      <artifactId>log4j</artifactId>
-      <version>1.2.17</version>
-    </dependency>
+		<groupId>ch.qos.logback</groupId>
+		<artifactId>logback-classic</artifactId>
+		<version>1.0.9</version>
+	</dependency>
+
+Note that the 'slf4j' and 'logback' dependencies are managed by the 'AppConfig' dependency (see below). 
 
 ## Advanced information
 
@@ -228,6 +230,7 @@ To change logging support:
 * Create a class which implements the 'LoggingHelper" interface 
 * Override the internal setting "com.verymuchme.appconfig.loggingHelper.className" (See below)
 * Consider changing the setting "com.verymuchme.appconfig.logging.ConfigurationPrefix" (See below)
+* Consider changing the setting "com.verymuchme.appconfig.loggingConfigurationNameSuffix" (See below)
 
 #### Configuration
 
@@ -324,14 +327,17 @@ The following internal settings are available:
     # Require a default database configuration file
     com.verymuchme.appconfig.database.defaultConfigurationEnabled = true
     
-    # Default prefix for a log4j configuration file
-    com.verymuchme.appconfig.logging.ConfigurationPrefix = log4j
-    # Require a default log4j configuration file
-    com.verymuchme.appconfig.log4j.defaultConfigurationEnabled = true
+    # Default prefix for a logback configuration file
+    com.verymuchme.appconfig.logging.ConfigurationPrefix = logback
+    # Require a default logback configuration file
+    com.verymuchme.appconfig.logback.defaultConfigurationEnabled = true
     
     # Default suffix for all configuration files
     com.verymuchme.appconfig.configurationNameSuffix = properties
     
+    # Default suffix for logging configuration files
+    com.verymuchme.appconfig.loggingConfigurationNameSuffix = xml
+
     # Default prefix for default configuration files
     com.verymuchme.appconfig.defaultConfigurationName = defaults
     
@@ -347,8 +353,8 @@ The following internal settings are available:
     # Default AppConfig logging level for internal logging
     com.verymuchme.appconfig.logging.logLevel = ERROR
     
-    # Name of AppConfig internal log4j configuration file
-    com.verymuchme.appconfig.logging.internalConfigurationFileName = log4j-internal-logger.properties
+    # Name of AppConfig internal logback configuration file
+    com.verymuchme.appconfig.logging.internalConfigurationFileName = logback-internal.xml
     
     # Default value of application properties package name
     application.propertiesPackageName = null
@@ -357,7 +363,7 @@ The following internal settings are available:
     application.propertiesPackageDir = null
     
     # Default LoggingHelper class name
-    com.verymuchme.appconfig.loggingHelper.className = com.verymuchme.appconfig.LoggingHelperLog4j
+    com.verymuchme.appconfig.loggingHelper.className = com.verymuchme.appconfig.LoggingHelperLogback
     
     # Default ConfigurationBuilder class name
     com.verymuchme.appconfig.configurationBuilder.className = com.verymuchme.appconfig.ConfigurationBuilderCommonsConfiguration
@@ -416,8 +422,12 @@ The AppConfig source is managed at https://github.com/tflynn/app_config.
       <url>https://github.com/tflynn/mvn-repo-public/raw/master/snapshots</url>
     </repository>
 
+    <!--  AppConfig -->
+    <!--  Contains dependencies for Logback logging support 1.0.9 -->
+    <!--  Contains dependency for slf4j-api 1.7.2 -->
     <dependency>
       <groupId>com.verymuchme.appconfig</groupId>
       <artifactId>app_config</artifactId>
-      <version>3.1.0</version>
+      <version>4.0.1</version>
     </dependency>
+

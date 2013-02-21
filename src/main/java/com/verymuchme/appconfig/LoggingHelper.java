@@ -16,6 +16,8 @@ package com.verymuchme.appconfig;
 
 import java.util.List;
 
+import ch.qos.logback.classic.Logger;
+
 public interface LoggingHelper {
 
   /**
@@ -93,7 +95,7 @@ public interface LoggingHelper {
    * @param loggingLevel
    * @param activeLogger logger to use for logging until logging is configured for the specified logger. Null indicates no override
    */
-  public void configureLoggerFromConfigurationFile(String loggingConfigurationFileName, String loggingLevel, org.slf4j.Logger activeLogger);
+  public void configureLoggerFromConfigurationFile(String loggingConfigurationFileName, String loggingLevel, Logger activeLogger);
  
   /**
    * Create a logger from the specified configuration file name with the specified logging level as an override. 
@@ -104,7 +106,7 @@ public interface LoggingHelper {
    * @param activeLogger logger to use for logging until logging is configured for the specified logger. Null indicates no override
    * @param classContext Specify class for resource loading. If null, loading is relative to LoggingHelper class instance
    */
-  public void configureLoggerFromConfigurationFile(String loggingConfigurationFileName, String loggingLevel, org.slf4j.Logger activeLogger, Class classContext);
+  public void configureLoggerFromConfigurationFile(String loggingConfigurationFileName, String loggingLevel, Logger activeLogger, Class classContext);
   
   /**
    * Override logging level for specified logger

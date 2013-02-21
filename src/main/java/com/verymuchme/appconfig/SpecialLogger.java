@@ -14,7 +14,9 @@
  */
 package com.verymuchme.appconfig;
 
-import org.slf4j.Logger;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 import org.slf4j.LoggerFactory;
 import org.slf4j.Marker;
 
@@ -30,335 +32,235 @@ import org.slf4j.Marker;
  * @since 3.0
  *
  */
-public class SpecialLogger implements org.slf4j.Logger {
+public class SpecialLogger {
 
+	public static final int OFF = 0;
+	public static final int ON = 10;
+	public static final int ERROR = 1;
+	public static final int WARN = 2;
+	public static final int INFO = 3; 
+	public static final int DEBUG = 4;
+	public static final int TRACE = 5;
+
+	private static final String[] LOG_LEVEL_STRINGS = new String[]{"","ERROR","WARN ", "INFO ", "DEBUG", "TRACE"};
+	
   // LOGGER_NAME is deliberately in a different namespace to all the other package loggers
   // to prevent problems with reinitializing open loggers
   private static final String LOGGER_NAME = "appconfig.specialLogger"; 
   // Actual logger name
   private String loggerName = null;
   
-  /*
-   * Logger instance
-   */
-  private Logger logger = null;
+  // Effective logging level 
+  private int level = OFF; 
 
+  // Default logging level if none specified in override
+  private static final String DEFAULT_LOGGER_LEVEL = "TRACE";
+  
   public SpecialLogger() {
     setLoggerName(LOGGER_NAME);
   }
+
+  /**
+   * Set the logging level
+   * 
+   * @param level Level
+   */
+  public void setLevel(int level) {
+  	this.level = level;
+  }
   
-  @Override
-  public void debug(String arg0) {
-    logger.debug(arg0);
+  /**
+   * Get the current logging level
+   * 
+   * @return Current logging level
+   */
+  public int getLevel() {
+  	return this.level;
   }
-
-  @Override
-  public void debug(String arg0, Object arg1) {
-    logger.debug(arg0,arg1);
-  }
-
-  @Override
-  public void debug(String arg0, Object[] arg1) {
-    logger.debug(arg0,arg1);
-  }
-
-  @Override
-  public void debug(String arg0, Throwable arg1) {
-    logger.debug(arg0,arg1);
-  }
-
-  @Override
-  public void debug(Marker arg0, String arg1) {
-    logger.debug(arg0,arg1);
-  }
-
-  @Override
-  public void debug(String arg0, Object arg1, Object arg2) {
-    logger.debug(arg0,arg1);
-  }
-
-  @Override
-  public void debug(Marker arg0, String arg1, Object arg2) {
-    logger.debug(arg0,arg1);
-  }
-
-  @Override
-  public void debug(Marker arg0, String arg1, Object[] arg2) {
-    logger.debug(arg0,arg1,arg2);
-  }
-
-  @Override
-  public void debug(Marker arg0, String arg1, Throwable arg2) {
-    logger.debug(arg0,arg1,arg2);
-  }
-
-  @Override
-  public void debug(Marker arg0, String arg1, Object arg2, Object arg3) {
-    logger.debug(arg0,arg1,arg2,arg3);
-  }
-
-  @Override
-  public void error(String arg0) {
-    logger.error(arg0);
-  }
-
-  @Override
-  public void error(String arg0, Object arg1) {
-    logger.error(arg0,arg1);
-  }
-
-  @Override
-  public void error(String arg0, Object[] arg1) {
-    logger.error(arg0,arg1);
-  }
-
-  @Override
-  public void error(String arg0, Throwable arg1) {
-    logger.error(arg0,arg1);
-  }
-
-  @Override
-  public void error(Marker arg0, String arg1) {
-    logger.error(arg0,arg1);
-  }
-
-  @Override
-  public void error(String arg0, Object arg1, Object arg2) {
-    logger.error(arg0,arg1,arg2);
-  }
-
-  @Override
-  public void error(Marker arg0, String arg1, Object arg2) {
-    logger.error(arg0,arg1,arg2);
-  }
-
-  @Override
-  public void error(Marker arg0, String arg1, Object[] arg2) {
-    logger.error(arg0,arg1,arg2);
-  }
-
-  @Override
-  public void error(Marker arg0, String arg1, Throwable arg2) {
-    logger.error(arg0,arg1,arg2);
-  }
-
-  @Override
-  public void error(Marker arg0, String arg1, Object arg2, Object arg3) {
-    logger.error(arg0,arg1,arg2,arg3);
-  }
-
-  @Override
-  public String getName() {
-    return logger.getName();
-  }
-
-  @Override
-  public void info(String arg0) {
-    logger.info(arg0);
-  }
-
-  @Override
-  public void info(String arg0, Object arg1) {
-    logger.info(arg0,arg1);
-  }
-
-  @Override
-  public void info(String arg0, Object[] arg1) {
-    logger.info(arg0,arg1);
-  }
-
-  @Override
-  public void info(String arg0, Throwable arg1) {
-    logger.info(arg0,arg1);
-  }
-
-  @Override
-  public void info(Marker arg0, String arg1) {
-    logger.info(arg0,arg1);
-  }
-
-  @Override
-  public void info(String arg0, Object arg1, Object arg2) {
-    logger.info(arg0,arg1,arg2);
-  }
-
-  @Override
-  public void info(Marker arg0, String arg1, Object arg2) {
-    logger.info(arg0,arg1,arg2);
-  }
-
-  @Override
-  public void info(Marker arg0, String arg1, Object[] arg2) {
-    logger.info(arg0,arg1,arg2);
-  }
-
-  @Override
-  public void info(Marker arg0, String arg1, Throwable arg2) {
-    logger.info(arg0,arg1,arg2);
-  }
-
-  @Override
-  public void info(Marker arg0, String arg1, Object arg2, Object arg3) {
-    logger.info(arg0,arg1,arg2,arg3);
-  }
-
-  @Override
-  public boolean isDebugEnabled() {
-    return logger.isDebugEnabled();
-  }
-
-  @Override
-  public boolean isDebugEnabled(Marker arg0) {
-    return logger.isDebugEnabled(arg0);
-  }
-
-  @Override
-  public boolean isErrorEnabled() {
-    return logger.isErrorEnabled();
-  }
-
-  @Override
-  public boolean isErrorEnabled(Marker arg0) {
-    return logger.isErrorEnabled(arg0);
-  }
-
-  @Override
-  public boolean isInfoEnabled() {
-    return logger.isInfoEnabled();
-  }
-
-  @Override
-  public boolean isInfoEnabled(Marker arg0) {
-    return logger.isInfoEnabled(arg0);
-  }
-
-  @Override
+  
+  /**
+   * Is TRACE level enabled
+   * 
+   * @return true if TRACE is enabled, false otherwise
+   */
   public boolean isTraceEnabled() {
-    return logger.isTraceEnabled();
-  }
-
-  @Override
-  public boolean isTraceEnabled(Marker arg0) {
-    return logger.isTraceEnabled(arg0);
-  }
-
-  @Override
-  public boolean isWarnEnabled() {
-    return logger.isWarnEnabled();
-  }
-
-  @Override
-  public boolean isWarnEnabled(Marker arg0) {
-    return logger.isWarnEnabled(arg0);
-  }
-
-  @Override
-  public void trace(String arg0) {
-    logger.trace(arg0);
-  }
-
-  @Override
-  public void trace(String arg0, Object arg1) {
-    logger.trace(arg0,arg1);
-  }
-
-  @Override
-  public void trace(String arg0, Object[] arg1) {
-    logger.trace(arg0,arg1);
-  }
-
-  @Override
-  public void trace(String arg0, Throwable arg1) {
-    logger.trace(arg0,arg1);
-  }
-
-  @Override
-  public void trace(Marker arg0, String arg1) {
-    logger.trace(arg0,arg1);
-  }
-
-  @Override
-  public void trace(String arg0, Object arg1, Object arg2) {
-    logger.trace(arg0,arg1,arg2);
-  }
-
-  @Override
-  public void trace(Marker arg0, String arg1, Object arg2) {
-    logger.trace(arg0,arg1,arg2);
-  }
-
-  @Override
-  public void trace(Marker arg0, String arg1, Object[] arg2) {
-    logger.trace(arg0,arg1,arg2);
-  }
-
-  @Override
-  public void trace(Marker arg0, String arg1, Throwable arg2) {
-    logger.trace(arg0,arg1,arg2);
-  }
-
-  @Override
-  public void trace(Marker arg0, String arg1, Object arg2, Object arg3) {
-    logger.trace(arg0,arg1,arg2,arg3);
-  }
-
-  @Override
-  public void warn(String arg0) {
-    logger.warn(arg0);
-  }
-
-  @Override
-  public void warn(String arg0, Object arg1) {
-    logger.warn(arg0,arg1);
-  }
-
-  @Override
-  public void warn(String arg0, Object[] arg1) {
-    logger.warn(arg0,arg1);
-  }
-
-  @Override
-  public void warn(String arg0, Throwable arg1) {
-    logger.warn(arg0,arg1);
-  }
-
-  @Override
-  public void warn(Marker arg0, String arg1) {
-    logger.warn(arg0,arg1);
-  }
-
-  @Override
-  public void warn(String arg0, Object arg1, Object arg2) {
-    logger.warn(arg0,arg1,arg2);
-  }
-
-  @Override
-  public void warn(Marker arg0, String arg1, Object arg2) {
-    logger.warn(arg0,arg1,arg2);
-  }
-
-  @Override
-  public void warn(Marker arg0, String arg1, Object[] arg2) {
-    logger.warn(arg0,arg1,arg2);
-  }
-
-  @Override
-  public void warn(Marker arg0, String arg1, Throwable arg2) {
-    logger.warn(arg0,arg1,arg2);
-  }
-
-  @Override
-  public void warn(Marker arg0, String arg1, Object arg2, Object arg3) {
-    logger.warn(arg0,arg1,arg2,arg3);
+  	return this.level >= TRACE;
   }
   
-  public void configureDynamically(String loggingLevel) {
-    LoggingHelper loggingHelper = LoggingHelperFactory.instance();
-    loggingHelper.bootstrapInternalLogging(this.loggerName,loggingLevel);
-    logger = LoggerFactory.getLogger(this.loggerName);
+  /*
+   * Log a message checking the requested logging level
+   * 
+   * @param logLevel Level at which to log
+   * @param msg Message to log
+   */
+  private void log(int logLevel,String msg) {
+  	if (logLevel <= this.level) {
+  		System.out.println(formatMessage(logLevel,msg));
+  	}
   }
   
+  /*
+   * Log a message checking the requested logging level
+   * 
+   * @param logLevel Level at which to log
+   * @param msg Message to log
+   * @param e Exception
+   */
+  private void log(int logLevel,String msg,Exception e) {
+  	if ((logLevel >= OFF) && (logLevel <= ON) ) {
+	  	if (logLevel <= this.level) {
+	  		log(logLevel,msg);
+	  		System.out.println(e.toString());
+	  		e.printStackTrace(System.out);
+	  	}
+  	}
+  }
+  
+  /*
+   * Format a log string - imitate logging format
+   */
+  private String formatMessage(int logLevel, String msg) {
+  	///[%d{yyyy-MM-dd HH:mm:ss}]		[%-5p]		[%t]	%m %n
+  	String dateString = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
+  	String threadId = String.valueOf(Thread.currentThread().getId());
+  	String logString = String.format("[%s]\t\t[%s]\t\t[%s]\t%s", dateString,LOG_LEVEL_STRINGS[logLevel],threadId,msg);
+  	return logString;
+  }
+  
+  /**
+   * Log a message at the TRACE level
+   * 
+   * @param msg Message to log
+   */
+  public void trace(String msg) {
+  	log(TRACE,msg);
+  }
+  
+  /**
+   * Log a message at the TRACE level
+   * 
+   * @param msg Message to log
+   * @param e Exception
+   */
+  public void trace(String msg,Exception e) {
+  	log(TRACE,msg,e);
+  }
+
+  /**
+   * Log a message at the DEBUG level
+   * 
+   * @param msg Message to log
+   */
+  public void debug(String msg) {
+    log(DEBUG,msg);
+  }
+
+  /**
+   * Log a message at the DEBUG level
+   * 
+   * @param msg Message to log
+   * @param e Exception
+   * 
+   */
+  public void debug(String msg,Exception e) {
+    log(DEBUG,msg,e);
+  }
+
+  
+  /**
+   * Log a message at the INFO level
+   * 
+   * @param msg Message to log
+   */
+  public void info(String msg) {
+  	log(INFO,msg);
+  }
+
+  /**
+   * Log a message at the INFO level
+   * 
+   * @param msg Message to log
+   * @param e Exception
+   */
+  public void info(String msg,Exception e) {
+  	log(INFO,msg,e);
+  }
+  
+  
+  /**
+   * Log a message at the WARN level
+   * 
+   * @param msg Message to log
+   */
+  public void warn(String msg) {
+  	log(WARN,msg);
+  }
+
+  /**
+   * Log a message at the WARN level
+   * 
+   * @param msg Message to log
+   * @param e Exception
+   */
+  public void warn(String msg,Exception e) {
+  	log(WARN,msg,e);
+  }
+  
+  /**
+   * Log a message at the ERROR level
+   * 
+   * @param msg Message to log
+   */
+  public void error(String msg) {
+  	log(ERROR,msg);
+  }
+
+  /**
+   * Log a message at the ERROR level
+   * 
+   * @param msg Message to log
+   * @param e Exception
+   */
+  public void error(String msg,Exception e) {
+  	log(ERROR,msg,e);
+  }
+
+  /**
+   * Set the logger name
+   * 
+   * @param loggerName
+   */
   protected void setLoggerName(String loggerName) {
     this.loggerName = loggerName;
   }
+  
+  /**
+   * Get the logger name
+   * 
+   * @return Logger name
+   */
+  protected String getLoggerName() {
+  	return this.loggerName;
+  }
+  
+  /**
+   * Set the current log level as a string
+   * 
+   * @param levelString Log level as a string
+   */
+  public void setLevelString(String levelString) {
+  	if (levelString == null) {
+  		this.setLevelString(DEFAULT_LOGGER_LEVEL);
+  	}
+  	else {
+	  	levelString = levelString.toUpperCase();
+	  	for (int i = 0 ; i < LOG_LEVEL_STRINGS.length ; i++) {
+	  		if (levelString.equals(LOG_LEVEL_STRINGS[i])) {
+	  			this.setLevel(i);
+	  			break;
+	  		}
+	  	}
+  	}
+  }
+  
 }
