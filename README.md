@@ -404,9 +404,9 @@ Settings internal to AppConfig itself (the list above) can be accessed from the 
 
     configuration.getString("com.verymuchme.appconfig.runTimeEnvironment");
 
-### AppConfig Source
+### AppConfig Source and Javadocs
 
-The AppConfig source is managed at https://github.com/tflynn/app_config.
+AppConfig uses [github](http://www.github.com) to manage [sources](https://github.com/tflynn/app_config) and [Javadocs](http://tflynn.github.com/app_config).
 
 
 
